@@ -38,7 +38,7 @@ module.exports = appInfo => {
          * mongoDB配置
          */
         mongo: {
-            uri: "mongodb://192.168.0.3:27017/auth"
+            uri: 'mongodb://192.168.0.3:27017/auth'
         },
 
         /**
@@ -47,11 +47,11 @@ module.exports = appInfo => {
         uploadConfig: {
             aliOss: {
                 enable: true,
-                accessKeyId: "LTAIy8TOsSnNFfPb",
-                accessKeySecret: "Bt5yMbW89O7wMTVQsNUfvYfou5GPsL",
-                bucket: "freelog-shenzhen",
+                accessKeyId: 'LTAIy8TOsSnNFfPb',
+                accessKeySecret: 'Bt5yMbW89O7wMTVQsNUfvYfou5GPsL',
+                bucket: 'freelog-shenzhen',
                 internal: false,
-                region: "oss-cn-shenzhen",
+                region: 'oss-cn-shenzhen',
                 timeout: 180000
             },
             amzS3: {}
@@ -74,7 +74,7 @@ module.exports = appInfo => {
             errCodeEnum: {}
         },
 
-        gatewayUrl: "http://192.168.0.3:1201",
+        gatewayUrl: 'http://192.168.0.3:1201',
 
         /**
          * DB-mysql相关配置
@@ -85,8 +85,8 @@ module.exports = appInfo => {
             connOptions: {
                 host: '192.168.99.100',
                 port: 5672,
-                login: "guest",
-                password: "guest",
+                login: 'guest',
+                password: 'guest',
                 authMechanism: 'AMQPLAIN'
             },
             implOptions: {
@@ -94,18 +94,36 @@ module.exports = appInfo => {
                 reconnectBackoffTime: 10000  //10秒尝试连接一次
             },
             exchange: {
-                name: "freelog-exchange",
-                queue: [
-                    {
-                        name: "event-contract-register",
-                        routeKey: "contract.register.*"
-                    },
-                    {
-                        name: "event-contract-create",
-                        routeKey: "contract.create.contract"
-                    }
-                ]
-            }
+                name: 'freelog-event-exchange',
+                options: {
+                    type: 'topic',
+                    autoDelete: false,
+                    confirm: true,
+                    durable: true
+                }
+            },
+            queues: [
+                {
+                    name: 'event-contract-fsm-event-register-queue',
+                    options: {autoDelete: false, durable: true},
+                    routingKeys: [
+                        {
+                            exchange: 'freelog-contract-exchange',
+                            routingKey: 'event.register.*'
+                        }
+                    ]
+                },
+                {
+                    name: 'event-subscribe-queue',
+                    options: {autoDelete: false, durable: true},
+                    routingKeys: [
+                        {
+                            exchange: 'freelog-contract-exchange',
+                            routingKey: 'contract.active.contract'
+                        }
+                    ]
+                }
+            ]
         }
     }
 

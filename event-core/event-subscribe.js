@@ -18,11 +18,9 @@ module.exports = {
 
         await new rabbit(app.config.rabbitMq).connect().then((client) => {
 
-            //订阅事件注册相关队列
+            //订阅合同相关的事件注册队列
             client.subscribe('event-contract-register', eventRegisterHandler.execEvent)
 
-            //订阅合同创建事件队列
-            client.subscribe('event-contract-create', eventRegisterHandler.execEvent)
         })
     }
 }

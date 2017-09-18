@@ -10,14 +10,14 @@ const eventHandler = require('./event-handler')
 const eventHandlerMap = {
 
     /**
-     * 创建合同事件
+     * 向事件中心注册事件
      */
-    createContractEvent: eventHandler.registerContractExpireEventHandler,
+    registerEvent: eventHandler.registerEventHandler,
 
     /**
      * 首次激活事件
      */
-    firstActiveContractEvent: eventHandler.contractEffectiveAuthEvent,
+    firstActiveContractEvent: eventHandler.contractEffectiveAuthEventHandler,
 
     /**
      * 合同超时未执行事件
@@ -39,6 +39,7 @@ module.exports = {
                 eventHandlerMap[eventName](message, headers, deliveryInfo, messageObject)
             } else {
                 console.log(`未找到事件handler,eventName:${eventName}`)
+                messageObject.acknowledge(false)
             }
         } catch (e) {
             console.error('=========event-hander-error-start==============')

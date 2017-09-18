@@ -19,5 +19,5 @@ module.exports = {
     /**
      * 合同有效授权循环递增事件
      */
-    contractEffectiveAuthIncreasecountCount: 3
+    contractEffectiveAuthIncreaseCount: 3
 }

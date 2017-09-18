@@ -25,10 +25,25 @@ module.exports = {
      * @param condition
      * @returns {Promise.<*>}
      */
-    getContractEvents(condition) {
+    getContractEvents(condition, eventTypes = []) {
         if (!eggApp.type.object(condition)) {
             return Promise.reject(new Error("condition is not object"))
         }
-        return eggApp.knex.contract('contractEventRegister').where(condition).select()
+
+        let query = eggApp.knex.contract('contractEventRegister').where(condition)
+
+        if (Array.isArray(eventTypes) && eventTypes.length > 0) {
+            query.whereIn('eventType', eventTypes)
+        }
+        return query.select()
+    },
+
+    /**
+     * 新增触发次数
+     * @param eventId
+     * @returns {Promise.<TResult>}
+     */
+    addTriggerCount(eventId){
+        return eggApp.knex.contract('contractEventRegister').where({eventId: eventId}).increment('triggerCount', 1).then()
     }
 }

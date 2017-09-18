@@ -49,7 +49,7 @@ module.exports = class rabbitMqClient extends Emitter {
      * @param body
      * @param options
      */
-    publish(routingKey, eventName, body, options) {
+    publish({routingKey, eventName, body, options}) {
         return new Promise((resolve, reject) => {
             if (!this.isReady) {
                 return reject(new Error("rabbitMq is not ready"))
@@ -59,7 +59,7 @@ module.exports = class rabbitMqClient extends Emitter {
                 deliveryMode: 2,  //1.非持久化  2.持久化消息
                 headers: {eventName: eventName || 'defalutEventName'},
                 messageId: uuid.v4()
-            }, options || {}), (ret, err) => {
+            }, options), (ret, err) => {
                 if (err) {
                     this.emit('publishFaile', routingKey, body, options, this.config.exchange.name)
                     return reject(err)
@@ -78,11 +78,10 @@ module.exports = class rabbitMqClient extends Emitter {
      * @param callback
      */
     subscribe(queueName, callback) {
-        if (!Array.isArray(this.config.exchange.queue) || this.config.exchange.queue.length === 0) {
+        if (!Array.isArray(this.config.queues) || this.config.queues.length === 0) {
             throw new Error("当前exchange上没有队列,请查看配置文件")
         }
-
-        if (!this.config.exchange.queue.some(t => t.name === queueName)) {
+        if (!this.config.queues.some(t => t.name === queueName)) {
             throw new Error("当前exchange上不存在指定的队列名")
         }
 
@@ -140,19 +139,14 @@ function startConnect() {
         let connection = this.connection = amqp.createConnection(this.config.connOptions, this.config.implOptions)
 
         connection.on('ready', () => {
-            this.exchange = connection.exchange(this.config.exchange.name, {
-                type: 'topic',
-                autoDelete: false,
-                confirm: true,
-                durable: true
-            })
+            this.exchange = connection.exchange(this.config.exchange.name, this.config.exchange.options)
             this.exchange.on('open', () => {
                 this.isReady = true
-                this.config.exchange.queue.forEach(item => {
-                    connection.queue(item.name, {autoDelete: false, durable: true}, (queue) => {
-                        if (item.routeKey) {
-                            queue.bind(this.config.exchange.name, item.routeKey) //也可以在web管理后台设置
-                        }
+                this.config.queues.forEach(item => {
+                    connection.queue(item.name, item.options, (queue) => {
+                        Array.isArray(item.routingKeys) && item.routingKeys.forEach(router => {
+                            queue.bind(router.exchange || this.config.exchange.name, router.routingKey)
+                        })
                         if (!this.queues.has(item.name)) {
                             this.queues.set(item.name, {queue, consumerTag: ""})
                         }
@@ -196,12 +190,17 @@ function startConnect() {
  */
 function heartBeat(client) {
     setInterval(() => {
-        client.publish('heartBeat', null, {message: '心跳检测包'}, {mandatory: false}).then(() => {
+        client.publish({
+            routingKey: 'heartBeat',
+            eventName: null,
+            body: {message: '心跳检测包'},
+            options: {mandatory: false}
+        }).then(() => {
             console.log('发送心跳包成功')
-        }).catch(() => {
+        }).catch((err) => {
             console.log('发送心跳包失败')
+            console.error(err)
         })
     }, 600000)
     console.log('程序将在10分钟以后开始进行rabbit心跳保持')
 }
-

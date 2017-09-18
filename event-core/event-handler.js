@@ -6,8 +6,9 @@
 
 const moment = require('moment')
 const uuid = require('node-uuid')
-const eventType = require('./event-type')
 const contractEventProvider = require('../app/data-provider/contract-event-provider')
+const contractCountProvider = require('../app/data-provider/contract-count-provider')
+const contractCountSubject = require('../observer/index').contractCountSubject()
 
 module.exports = {
 
@@ -23,7 +24,7 @@ module.exports = {
         let contractExpireEvent = {
             eventId: messageObject.messageId || uuid.v4(),
             contractId: message.contractId,
-            eventType: eventType.contractExpire,
+            eventType: eggApp.eventRegisterType.contractExpire,
             eventParams: JSON.stringify({
                 expireDate: message.expireDate
             }),
@@ -41,7 +42,45 @@ module.exports = {
      * 合同首次激活事件
      * @returns {Promise.<void>}
      */
-    async contractEffectiveAuthEvent(message, headers, deliveryInfo, messageObject){
+    async contractEffectiveAuthEventHandler(message, headers, deliveryInfo, messageObject){
+        let model = {
+            contractId: message.contractId,
+            countType: eggApp.eventCountType.PresentableContractEffectiveAuth
+        }
 
+        await contractCountProvider.addContractCount(model).then(() => {
+            return contractCountProvider.getContractCount(model).first()
+        }).then(contractCountModel => {
+            contractCountSubject.setContractCount(contractCountModel)
+        }).catch(console.error)
+
+        messageObject.acknowledge(false)
+    },
+
+    /**
+     * 事件中心接受其他服务的注册申请
+     * @param message
+     * @param headers
+     * @param deliveryInfo
+     * @param messageObject
+     * @returns {Promise.<void>}
+     */
+    async registerEventHandler(message, headers, deliveryInfo, messageObject){
+        let model = {
+            eventId: messageObject.messageId || uuid.v4(),
+            contractId: message.contractId,
+            eventType: message.eventType,
+            eventParams: JSON.stringify(message.eventParams),
+            triggerCount: 0,
+            triggerLimit: message.triggerLimit,
+            createDate: moment().toDate()
+        }
+
+        if (Object.values(eggApp.eventRegisterType).some(type => type !== model.eventType)) {
+            console.log('事件注册失败', message)
+            return
+        }
+
+        await contractEventProvider.registerContractEvent(model)
     }
 }
