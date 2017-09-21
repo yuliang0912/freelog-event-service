@@ -104,7 +104,7 @@ module.exports = appInfo => {
             },
             queues: [
                 {
-                    name: 'event-contract-fsm-event-register-queue',
+                    name: 'event-fsm-event-register-queue',
                     options: {autoDelete: false, durable: true},
                     routingKeys: [
                         {

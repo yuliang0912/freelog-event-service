@@ -19,8 +19,20 @@ module.exports = {
         await new rabbit(app.config.rabbitMq).connect().then((client) => {
 
             //订阅合同相关的事件注册队列
-            client.subscribe('event-contract-register', eventRegisterHandler.execEvent)
+            client.subscribe('event-fsm-event-register-queue', eventRegisterHandler.execEvent)
 
+            //订阅其他可能触发事件中心支持的事件的队列
+            client.subscribe('event-subscribe-queue', eventRegisterHandler.execEvent)
+        })
+
+
+        rabbit.Instance.publish({
+            routingKey: 'event.contract.trigger',
+            eventName: 'dc789bba60c14f8781fc9c9d03833757',
+            body: {
+                expireDate: '12-12-2012',
+                contractId: '59a6824cac2a69554492f21d'
+            }
         })
     }
 }

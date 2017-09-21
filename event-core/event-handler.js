@@ -11,33 +11,6 @@ const contractCountProvider = require('../app/data-provider/contract-count-provi
 const contractCountSubject = require('../observer/index').contractCountSubject()
 
 module.exports = {
-
-    /**
-     * 创建合同事件(事件服务自动注册合同过期事件)
-     * @param message
-     * @param headers
-     * @param deliveryInfo
-     * @param messageObject
-     */
-    async registerContractExpireEventHandler(message, headers, deliveryInfo, messageObject){
-
-        let contractExpireEvent = {
-            eventId: messageObject.messageId || uuid.v4(),
-            contractId: message.contractId,
-            eventType: eggApp.eventRegisterType.contractExpire,
-            eventParams: JSON.stringify({
-                expireDate: message.expireDate
-            }),
-            triggerCount: 0,
-            triggerLimit: 1,
-            createDate: moment().toDate()
-        }
-
-        await contractEventProvider.registerContractEvent(contractExpireEvent).then(() => {
-            messageObject.acknowledge(false)
-        }).catch(console.error)
-    },
-
     /**
      * 合同首次激活事件
      * @returns {Promise.<void>}
@@ -67,7 +40,7 @@ module.exports = {
      */
     async registerEventHandler(message, headers, deliveryInfo, messageObject){
         let model = {
-            eventId: messageObject.messageId || uuid.v4(),
+            eventId: message.eventId || messageObject.messageId || uuid.v4(),
             contractId: message.contractId,
             eventType: message.eventType,
             eventParams: JSON.stringify(message.eventParams),
@@ -76,11 +49,13 @@ module.exports = {
             createDate: moment().toDate()
         }
 
-        if (Object.values(eggApp.eventRegisterType).some(type => type !== model.eventType)) {
+        if (!Object.values(eggApp.eventRegisterType).some(type => type == model.eventType)) {
             console.log('事件注册失败', message)
             return
         }
 
-        await contractEventProvider.registerContractEvent(model)
+        await contractEventProvider.registerContractEvent(model).then(() => {
+            messageObject.acknowledge(false)
+        })
     }
 }
