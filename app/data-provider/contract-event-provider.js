@@ -44,6 +44,17 @@ module.exports = {
      * @returns {Promise.<TResult>}
      */
     addTriggerCount(eventId){
-        return eggApp.knex.contract('contractEventRegister').where({eventId: eventId}).increment('triggerCount', 1).then()
+        return eggApp.knex.contract('contractEventRegister').where({eventId}).increment('triggerCount', 1).then()
+    },
+
+    /**
+     * 删除已注册的事件
+     * @param eventId
+     */
+    deleteContractEvent(condition){
+        if (!eggApp.type.object(condition)) {
+            return Promise.reject(new Error("condition is not object"))
+        }
+        return eggApp.knex.contract('contractEventRegister').where(condition).delete().then()
     }
 }

@@ -15,6 +15,11 @@ const eventHandlerMap = {
     registerEvent: eventHandler.registerEventHandler,
 
     /**
+     * 取消已注册的事件
+     */
+    unRegisterEvent: eventHandler.unRegisterEventHandler,
+
+    /**
      * 首次激活事件
      */
     firstActiveContractEvent: eventHandler.contractEffectiveAuthEventHandler,
@@ -36,7 +41,7 @@ module.exports = {
         try {
             let eventName = headers.eventName
             if (Reflect.has(eventHandlerMap, eventName)) {
-                eventHandlerMap[eventName](message, headers, deliveryInfo, messageObject)
+                Reflect.get(eventHandlerMap, eventName).call(null, message, headers, deliveryInfo, messageObject)
             } else {
                 console.log(`未找到事件handler,eventName:${eventName}`)
                 messageObject.acknowledge(false)

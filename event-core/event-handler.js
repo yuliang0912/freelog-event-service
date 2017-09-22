@@ -57,5 +57,22 @@ module.exports = {
         await contractEventProvider.registerContractEvent(model).then(() => {
             messageObject.acknowledge(false)
         })
+    },
+
+    /**
+     * 事件中心取消已注册的事件
+     * @param message
+     * @param headers
+     * @param deliveryInfo
+     * @param messageObject
+     * @returns {Promise.<void>}
+     */
+    async unRegisterEventHandler(message, headers, deliveryInfo, messageObject){
+        await contractEventProvider.deleteContractEvent({
+            eventId: message.eventId,
+            contractId: message.contractId
+        }).then(() => {
+            messageObject.acknowledge(false)
+        })
     }
 }
