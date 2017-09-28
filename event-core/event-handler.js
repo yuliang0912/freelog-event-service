@@ -46,6 +46,7 @@ module.exports = {
             eventParams: JSON.stringify(message.eventParams),
             triggerCount: 0,
             triggerLimit: message.triggerLimit,
+            triggerDate: message.triggerDate || '1970-1-1',
             createDate: moment().toDate()
         }
 
@@ -55,6 +56,9 @@ module.exports = {
         }
 
         await contractEventProvider.registerContractEvent(model).then(() => {
+            messageObject.acknowledge(false)
+        }).catch(() => {
+            console.log(model)
             messageObject.acknowledge(false)
         })
     },

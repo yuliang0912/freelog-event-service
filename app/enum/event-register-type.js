@@ -7,9 +7,9 @@
 module.exports = {
 
     /**
-     * 合同过期
+     * 指定时间点触发事件
      */
-    contractExpire: 1,
+    arrivalDate: 1,
 
     /**
      * 合同有效授权次数(首次授权)

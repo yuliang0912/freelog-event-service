@@ -16,8 +16,8 @@ module.exports = {
         }
 
         return eggApp.knex.contract.raw(
-            `INSERT ignore INTO contractEventRegister(eventId,contractId,eventType,eventParams,triggerCount,triggerLimit,createDate) 
-          VALUES (:eventId,:contractId,:eventType,:eventParams,:triggerCount,:triggerLimit,:createDate)`, model)
+            `INSERT ignore INTO contractEventRegister(eventId,contractId,eventType,eventParams,triggerCount,triggerLimit,triggerDate,createDate) 
+          VALUES (:eventId,:contractId,:eventType,:eventParams,:triggerCount,:triggerLimit,:triggerDate,:createDate)`, model)
     },
 
     /**
