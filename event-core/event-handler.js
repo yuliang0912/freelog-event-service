@@ -8,7 +8,7 @@ const moment = require('moment')
 const uuid = require('node-uuid')
 const contractEventProvider = require('../app/data-provider/contract-event-provider')
 const contractCountProvider = require('../app/data-provider/contract-count-provider')
-const contractCountSubject = require('../observer/index').contractCountSubject()
+const contractCountSubject = require('../app/observer/index').contractCountSubject()
 
 module.exports = {
     /**
@@ -55,12 +55,10 @@ module.exports = {
             return
         }
 
-        await contractEventProvider.registerContractEvent(model).then(() => {
-            messageObject.acknowledge(false)
-        }).catch(() => {
+        await contractEventProvider.registerContractEvent(model).catch(() => {
             console.log(model)
-            messageObject.acknowledge(false)
         })
+        messageObject.acknowledge(false)
     },
 
     /**
@@ -75,8 +73,7 @@ module.exports = {
         await contractEventProvider.deleteContractEvent({
             eventId: message.eventId,
             contractId: message.contractId
-        }).then(() => {
-            messageObject.acknowledge(false)
         })
+        messageObject.acknowledge(false)
     }
 }

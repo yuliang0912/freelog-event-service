@@ -39,6 +39,21 @@ module.exports = {
     },
 
     /**
+     * 获取合同事件
+     * @param condition
+     * @returns {Promise.<*>}
+     */
+    getContractEventList(endTriggerDate, eventType, page, pageSize) {
+
+        return eggApp.knex.contract('contractEventRegister')
+            .where({eventType})
+            .where('triggerDate', '<', endTriggerDate)
+            .where('triggerCount', 0)
+            .limit(pageSize)
+            .offset((page - 1) * pageSize)
+    },
+
+    /**
      * 新增触发次数
      * @param eventId
      * @returns {Promise.<TResult>}
@@ -57,4 +72,5 @@ module.exports = {
         }
         return eggApp.knex.contract('contractEventRegister').where(condition).delete().then()
     }
+
 }

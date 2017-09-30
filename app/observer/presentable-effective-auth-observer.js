@@ -6,7 +6,7 @@
 
 const observerId = 'PresentableEffectiveAuthObserver'
 const baseObserver = require('./base-observer')
-const contractEventProvider = require('../app/data-provider/contract-event-provider')
+const contractEventProvider = require('../data-provider/contract-event-provider')
 
 /**
  * 用户与presentable签订的合同首次激活观察者

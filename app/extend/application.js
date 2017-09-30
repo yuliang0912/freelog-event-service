@@ -3,12 +3,17 @@
  */
 
 'use strict'
-
+const moment = require('moment')
 const eventCountType = require('../enum/event-count-type')
 const eventRegisterType = require('../enum/event-register-type')
 const rabbitClient = require('./helper/rabbit_mq_client')
 
 module.exports = {
+
+    /**
+     * 时间操作库
+     */
+    moment,
 
     /**
      * 合同数量统计类型
