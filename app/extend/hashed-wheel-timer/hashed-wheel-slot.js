@@ -9,10 +9,11 @@
  * @type {HashedWheelSlot}
  */
 module.exports = class HashedWheelSlot {
+
     constructor(wheekIndex, slotIndex) {
         this.slotIndex = slotIndex
         this.wheekIndex = wheekIndex
-        this.timeoutTaskArray = new Set()
+        this.timeoutTaskArray = new Map()
     }
 
     /**
@@ -20,7 +21,10 @@ module.exports = class HashedWheelSlot {
      * @param timeoutTask
      */
     add(timeoutTask) {
-        this.timeoutTaskArray.add(timeoutTask)
+        if (!this.timeoutTaskArray.has(timeoutTask.taskId)) {
+            this.timeoutTaskArray.set(timeoutTask.taskId, timeoutTask)
+            console.log(`addTask: ${timeoutTask.taskId},slotIndex:${this.slotIndex},wheekIndex:${this.wheekIndex}`)
+        }
     }
 
     /**

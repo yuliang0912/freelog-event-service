@@ -15,15 +15,17 @@ module.exports = {
      * @param countType
      */
     addContractCount({contractId, countType}){
-        return eggApp.knex.contract.raw(
-            `INSERT INTO contractCount(contractId,count,countType,createDate) 
+
+        let sql = `INSERT INTO contractCount(contractId,count,countType,createDate) 
             VALUES (:contractId,:count,:countType,:createDate) 
-            ON DUPLICATE KEY UPDATE count = count + 1`, {
-                contractId: contractId,
-                count: 1,
-                countType: countType,
-                createDate: moment().toDate(),
-            })
+            ON DUPLICATE KEY UPDATE count = count + 1`
+
+        return eggApp.knex.contract.raw(sql, {
+            contractId: contractId,
+            count: 1,
+            countType: countType,
+            createDate: moment().toDate(),
+        })
     },
 
     /**

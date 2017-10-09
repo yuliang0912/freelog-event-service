@@ -16,33 +16,26 @@ const HashedWheelTimeoutState = {
  */
 module.exports = class HashedWheelTimeout {
 
-    constructor(task, deadline) {
-        this._state = HashedWheelTimeoutState.Waiting
-        this._task = task
+    constructor(taskId, task, deadline) {
+        this.state = HashedWheelTimeoutState.Waiting
+        this.task = task
+        this.taskId = taskId
         this.deadline = deadline
-    }
-
-    /**
-     * 获取任务状态
-     * @returns {string|*|string}
-     */
-    get state() {
-        return this._state
     }
 
     /**
      * 取消超时任务
      */
     cancel() {
-        this._state = HashedWheelTimeoutState.Cancelled
+        this.state = HashedWheelTimeoutState.Cancelled
     }
 
     /**
      * 执行超时任务
      */
     expireTimeout() {
-        if (this._state === HashedWheelTimeoutState.Waiting) {
-            this._task.call(null)
+        if (this.state === HashedWheelTimeoutState.Waiting) {
+            this.task.call(null)
         }
     }
 }

@@ -4,24 +4,21 @@
 
 'use strict'
 
+const END_TIME_SPAN = 20000 //20S一个周期
 const hashedWheelTimer = require('../extend/hashed-wheel-timer/hashed-wheel-timer')
+const timer = new hashedWheelTimer(12, 5) //1分钟一圈 12个槽位,5秒间隔
 
-const timer = new hashedWheelTimer(12, 5)
+const jobTask = async () => {
 
-module.exports = {
-    schedule: {
-        type: 'worker',
-        cron: '*/5 * * * * * *', //测试阶段30秒一个周期
-    },
-    async task () {
-        let endDate = new Date(Date.now() + 10000)
+    let page = 1
+    let pageSize = 100
+    let endDate = new Date(Date.now() + END_TIME_SPAN)
 
-        getData([], endDate, 1, 1).then(createTask).then(taskList => {
-            taskList.forEach(task => {
-                timer.newTimeout(task.timerTask, task.taskExpireTime)
-            })
+    getData([], endDate, page, pageSize).then(createTask).then(taskList => {
+        taskList.forEach(task => {
+            timer.newTimeout(task.taskId, task.timerTask, task.taskExpireTime)
         })
-    }
+    })
 }
 
 const getData = async (dataList, endDate, page, pageSize) => {
@@ -39,17 +36,31 @@ const getData = async (dataList, endDate, page, pageSize) => {
 const createTask = (dataList) => {
     return dataList.map(item => {
         return {
+            taskId: item.eventId,
             taskExpireTime: new Date(item.triggerDate),
             timerTask: function () {
-                console.log(item)
+                if (item.triggerDate > new Date()) {
+                    console.log('exec error', item.triggerDate, new Date())
+                }
                 eggApp.rabbitClient.publish({
                     routingKey: item.eventParams.routingKey,
                     eventName: item.eventId,
                     body: item.eventParams
-                }).then(() => {
-                    return eggApp.provider.contractEventProvider.addTriggerCount(item.eventId)
-                }).then()
+                }).then((result) => {
+                    if (result) {
+                        return eggApp.provider.contractEventProvider.addTriggerCount(item.eventId)
+                    }
+                }).catch(console.error)
             }
         }
     })
 }
+
+module.exports.task = jobTask
+
+//定时执行周期
+module.exports.schedule = {
+    type: 'worker',
+    cron: '*/20 * * * * * *',
+}
+

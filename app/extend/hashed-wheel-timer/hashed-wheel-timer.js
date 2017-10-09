@@ -29,13 +29,19 @@ module.exports = class hashedWheelTimer {
     }
 
     /**
+     * 获取当前循环轮次的下标
+     * @returns {number}
+     */
+    get currWheelIndex() {
+        return Math.floor(this.currentTickIndex / this.ticksPerWheel)
+    }
+
+    /**
      * 获取当前轮
      * @returns {V}
      */
     get currWheel() {
-        let currWheelIndex = Math.floor(this.currentTickIndex / this.ticksPerWheel)
-
-        return this.allWheels.get(currWheelIndex)
+        return this.allWheels.get(this.currWheelIndex)
     }
 
     /**
@@ -44,7 +50,6 @@ module.exports = class hashedWheelTimer {
      */
     get currSlot() {
         let currSlotIndex = this.currentTickIndex % this.ticksPerWheel
-
         return this.currWheel ? this.currWheel.get(currSlotIndex) : undefined
     }
 
@@ -52,13 +57,16 @@ module.exports = class hashedWheelTimer {
      * 每次指针跳动时执行的任务
      */
     tick() {
-        this.bulidWheel()
+
         this.currentTickIndex += 1
+        this.bulidWheel()
 
         let currSlot = this.currSlot
+
         currSlot && currSlot.timeoutTaskArray.forEach(task => {
             task.expireTimeout()
         })
+
         this.clearPrevWheel()
     }
 
@@ -91,18 +99,20 @@ module.exports = class hashedWheelTimer {
      * 新增一个定时任务
      * @param hashedWheelTimeout
      */
-    newTimeout(timerTask, taskExpireTime) {
+    newTimeout(taskId, timerTask, taskExpireTime) {
         this.start()
-        //任务超时时间以秒为单位计算,任务会先存放到queue中,等待下一次tick前存放到正确的wheel和slot中
-        let deadline = Math.floor((taskExpireTime.getTime() - this.startTime) / 1000)
-        let wheelTimeout = new HashedWheelTimeout(timerTask, deadline)
 
-        if (deadline < 1) {
-            return timerTask()
-            //throw new Error('taskExpireTime must be greater than current system time')
+        let deadline = Date.now() - this.startTime
+
+        if (taskExpireTime > new Date()) {
+            deadline = taskExpireTime.getTime() - this.startTime - deadline
         }
+
+        //任务超时时间以秒为单位计算,任务会先存放到queue中,等待下一次tick前存放到正确的wheel和slot中
+        let wheelTimeout = new HashedWheelTimeout(taskId, timerTask, Math.floor(deadline / 1000))
+
         this.timeoutQueue.push(wheelTimeout)
-        console.log('addTask')
+
         return wheelTimeout
     }
 
@@ -121,9 +131,9 @@ module.exports = class hashedWheelTimer {
      * 清空上一轮的任务
      */
     clearPrevWheel() {
+        //第二轮开始执行时,清空上一轮的所有数据
         if (this.currentTickIndex % this.ticksPerWheel === 0) {
-            let currWheelIndex = Math.floor(this.currentTickIndex / this.ticksPerWheel)
-            this.allWheels.delete(currWheelIndex - 1)
+            this.allWheels.delete(this.currWheelIndex - 1)
         }
     }
 }

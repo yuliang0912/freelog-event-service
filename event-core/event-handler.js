@@ -46,17 +46,17 @@ module.exports = {
             eventParams: JSON.stringify(message.eventParams),
             triggerCount: 0,
             triggerLimit: message.triggerLimit,
-            triggerDate: message.triggerDate || '1970-1-1',
+            triggerDate: message.triggerDate ? new Date(message.triggerDate) : '1970-1-1',
             createDate: moment().toDate()
         }
 
         if (!Object.values(eggApp.eventRegisterType).some(type => type == model.eventType)) {
-            console.log('事件注册失败', message)
+            console.log('事件注册失败,不支持的事件类型', message)
             return
         }
 
         await contractEventProvider.registerContractEvent(model).catch(() => {
-            console.log(model)
+            console.log('register contract event error:', model)
         })
         messageObject.acknowledge(false)
     },

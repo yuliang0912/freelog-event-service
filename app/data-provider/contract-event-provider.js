@@ -15,9 +15,10 @@ module.exports = {
             return Promise.reject(new Error("model is not object"))
         }
 
-        return eggApp.knex.contract.raw(
-            `INSERT ignore INTO contractEventRegister(eventId,contractId,eventType,eventParams,triggerCount,triggerLimit,triggerDate,createDate) 
-          VALUES (:eventId,:contractId,:eventType,:eventParams,:triggerCount,:triggerLimit,:triggerDate,:createDate)`, model)
+        let sql = `INSERT ignore INTO contractEventRegister(eventId,contractId,eventType,eventParams,triggerCount,triggerLimit,triggerDate,createDate) 
+                 VALUES (:eventId,:contractId,:eventType,:eventParams,:triggerCount,:triggerLimit,:triggerDate,:createDate)`
+
+        return eggApp.knex.contract.raw(sql, model)
     },
 
     /**
@@ -72,5 +73,4 @@ module.exports = {
         }
         return eggApp.knex.contract('contractEventRegister').where(condition).delete().then()
     }
-
 }
