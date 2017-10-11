@@ -73,7 +73,7 @@ module.exports = {
         await contractEventProvider.deleteContractEvent({
             eventId: message.eventId,
             contractId: message.contractId
-        })
+        }).catch(console.error)
         messageObject.acknowledge(false)
     }
 }
