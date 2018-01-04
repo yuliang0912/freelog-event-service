@@ -172,6 +172,7 @@ function startConnect() {
             reject(err)
             this.isReady = false
             console.log("rabbitMQ error," + err.toString());
+            console.log(this.config);
         })
 
         connection.on('tag.change', function (event) {
