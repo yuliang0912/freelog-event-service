@@ -46,12 +46,6 @@ module.exports = appInfo => {
             },
             exchange: {
                 name: 'freelog-event-exchange',
-                options: {
-                    type: 'topic',
-                    autoDelete: false,
-                    confirm: true,
-                    durable: true
-                }
             },
             queues: [
                 {

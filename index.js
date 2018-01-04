@@ -10,5 +10,5 @@ console.log(new Date())
 require('egg').startCluster({
     baseDir: __dirname,
     port: process.env.PORT || 7010, // default to 7001
-    workers: 2
+    workers: 1
 });

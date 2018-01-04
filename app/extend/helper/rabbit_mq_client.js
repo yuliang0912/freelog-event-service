@@ -58,7 +58,7 @@ module.exports = class rabbitMqClient extends Emitter {
                 mandatory: true, //无法匹配路由时,是否触发basic-return事件
                 deliveryMode: 2,  //1.非持久化  2.持久化消息
                 headers: {eventName: eventName || 'defalutEventName'},
-                messageId: uuid.v4()
+                messageId: uuid.v4().replace(/-/g, "")
             }, options), (ret, err) => {
                 if (err) {
                     this.emit('publishFaile', routingKey, body, options, this.config.exchange.name)
@@ -85,9 +85,9 @@ module.exports = class rabbitMqClient extends Emitter {
             throw new Error("当前exchange上不存在指定的队列名")
         }
 
-        if (toString.call(callback) !== '[object Function]') {
-            throw new Error('callback 必须是function')
-        }
+        // if (toString.call(callback) !== '[object Function]') {
+        //     throw new Error('callback 必须是function')
+        // }
 
         /**
          * 如果已经绑定好队列,则直接订阅
@@ -139,7 +139,12 @@ function startConnect() {
         let connection = this.connection = amqp.createConnection(this.config.connOptions, this.config.implOptions)
 
         connection.on('ready', () => {
-            this.exchange = connection.exchange(this.config.exchange.name, this.config.exchange.options)
+            this.exchange = connection.exchange(this.config.exchange.name, {
+                type: 'topic',
+                autoDelete: false,
+                confirm: true,
+                durable: true
+            })
             this.exchange.on('open', () => {
                 this.isReady = true
                 this.config.queues.forEach(item => {
@@ -172,7 +177,6 @@ function startConnect() {
             reject(err)
             this.isReady = false
             console.log("rabbitMQ error," + err.toString());
-            console.log(this.config);
         })
 
         connection.on('tag.change', function (event) {
