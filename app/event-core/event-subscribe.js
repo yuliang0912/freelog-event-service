@@ -14,5 +14,8 @@ module.exports = async app => {
 
         //订阅其他可能触发事件中心支持的事件的队列
         client.subscribe('event-subscribe-queue', app.eventCore.eventHandlerMap.execEvent)
+    }).catch(err => {
+        console.log('rabbitmq error')
+        console.log(app.config.rabbitMq)
     })
 }
