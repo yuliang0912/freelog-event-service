@@ -1,88 +1,21 @@
-'use strict';
+/**
+ * Created by yuliang on 2017/11/8.
+ */
+
+'use strict'
 
 module.exports = appInfo => {
-    const config = {
-        keys: '20ab72d9397ff78c5058a106c635f008',
+    return {
 
-        i18n: {
-            enable: false
-        },
+        gatewayUrl: "http://172.18.215.224:8895",
 
-        /**
-         * 关闭安全防护
-         */
-        security: {
-            xframe: {
-                enable: false,
-            },
-            csrf: {
-                enable: false,
-            }
-        },
-
-        ua: {
-            enable: true
-        },
-
-        bodyParser: {
-            enable: true,
-        },
-
-        middleware: ['errorHandler'],
-
-
-        /**
-         * mongoDB配置
-         */
-        mongo: {
-            uri: 'mongodb://192.168.0.99:27017/auth'
-        },
-
-        /**
-         * 上传文件相关配置
-         */
-        uploadConfig: {
-            aliOss: {
-                enable: true,
-                accessKeyId: 'LTAIy8TOsSnNFfPb',
-                accessKeySecret: 'Bt5yMbW89O7wMTVQsNUfvYfou5GPsL',
-                bucket: 'freelog-shenzhen',
-                internal: false,
-                region: 'oss-cn-shenzhen',
-                timeout: 180000
-            },
-            amzS3: {}
-        },
-
-        multipart: {
-            autoFields: true,
-            defaultCharset: 'utf8',
-            fieldNameSize: 100,
-            fieldSize: '100kb',
-            fields: 10,
-            fileSize: '100mb',
-            files: 10,
-            fileExtensions: [],
-            whitelist: (fileName) => true,
-        },
-
-        freelogBase: {
-            retCodeEnum: {},
-            errCodeEnum: {}
-        },
-
-        gatewayUrl: "http://api.freelog.com",
-
-        /**
-         * DB-mysql相关配置
-         */
         dbConfig: {
             contract: {
                 client: 'mysql2',
                 connection: {
-                    host: '192.168.0.99',
-                    user: 'root',
-                    password: 'yuliang@@',
+                    host: 'rm-wz9wj9435a0428942.mysql.rds.aliyuncs.com',
+                    user: 'freelog',
+                    password: 'Ff@233109',
                     database: 'fr_contract',
                     charset: 'utf8',
                     timezone: '+08:00',
@@ -92,7 +25,7 @@ module.exports = appInfo => {
                 },
                 pool: {
                     maxConnections: 50,
-                    minConnections: 2,
+                    minConnections: 1,
                 },
                 acquireConnectionTimeout: 10000,
                 debug: false
@@ -101,7 +34,7 @@ module.exports = appInfo => {
 
         rabbitMq: {
             connOptions: {
-                host: '192.168.164.129',
+                host: '172.18.215.224',
                 port: 5672,
                 login: 'guest',
                 password: 'guest',
@@ -144,6 +77,4 @@ module.exports = appInfo => {
             ]
         }
     }
-
-    return config;
-};
+}

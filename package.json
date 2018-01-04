@@ -4,11 +4,11 @@
   "description": "飞致网络事件处理服务",
   "dependencies": {
     "amqp": "^0.2.6",
-    "bluebird": "^3.5.0",
-    "egg-freelog-base": "^1.0.30",
+    "bluebird": "^3.5.1",
+    "egg-freelog-base": "^1.1.18",
     "knex": "^0.13.0",
-    "moment": "^2.18.1",
-    "mysql2": "^1.4.2",
+    "moment": "^2.19.2",
+    "mysql2": "^1.5.1",
     "node-uuid": "^1.4.8"
   },
   "scripts": {

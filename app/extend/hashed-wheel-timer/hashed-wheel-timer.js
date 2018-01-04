@@ -18,7 +18,6 @@ module.exports = class hashedWheelTimer {
      * @param tickDuration  每槽间隔时间(秒)
      */
     constructor(ticksPerWheel, tickDuration) {
-
         this.ticksPerWheel = ticksPerWheel
         this.tickDuration = tickDuration
         this.allWheels = new Map()
@@ -105,8 +104,10 @@ module.exports = class hashedWheelTimer {
         let deadline = Date.now() - this.startTime
 
         if (taskExpireTime > new Date()) {
-            deadline = taskExpireTime.getTime() - this.startTime - deadline
+            deadline = taskExpireTime.getTime() - this.startTime
         }
+
+        console.log(taskExpireTime)
 
         //任务超时时间以秒为单位计算,任务会先存放到queue中,等待下一次tick前存放到正确的wheel和slot中
         let wheelTimeout = new HashedWheelTimeout(taskId, timerTask, Math.floor(deadline / 1000))

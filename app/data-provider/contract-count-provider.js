@@ -6,37 +6,41 @@
 
 const moment = require('moment')
 
-module.exports = {
+module.exports = app => {
 
-    /**
-     * 增加次数
-     * @param contractId
-     * @param count
-     * @param countType
-     */
-    addContractCount({contractId, countType}){
+    let {type, knex} = app
 
-        let sql = `INSERT INTO contractCount(contractId,count,countType,createDate) 
+    return {
+        /**
+         * 增加次数
+         * @param contractId
+         * @param count
+         * @param countType
+         */
+        addContractCount({contractId, countType}){
+
+            let sql = `INSERT INTO contractCount(contractId,count,countType,createDate) 
             VALUES (:contractId,:count,:countType,:createDate) 
             ON DUPLICATE KEY UPDATE count = count + 1`
 
-        return eggApp.knex.contract.raw(sql, {
-            contractId: contractId,
-            count: 1,
-            countType: countType,
-            createDate: moment().toDate(),
-        })
-    },
+            return knex.contract.raw(sql, {
+                contractId: contractId,
+                count: 1,
+                countType: countType,
+                createDate: moment().toDate(),
+            })
+        },
 
-    /**
-     * 查询数量
-     * @param condition
-     * @returns {Promise.<*>}
-     */
-    getContractCount(condition){
-        if (!eggApp.type.object(condition)) {
-            return Promise.reject(new Error("condition is not object"))
+        /**
+         * 查询数量
+         * @param condition
+         * @returns {Promise.<*>}
+         */
+        getContractCount(condition){
+            if (!type.object(condition)) {
+                return Promise.reject(new Error("condition is not object"))
+            }
+            return knex.contract('contractCount').where(condition).select()
         }
-        return eggApp.knex.contract('contractCount').where(condition).select()
     }
 }

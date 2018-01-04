@@ -6,7 +6,7 @@
 
 const observerId = 'PresentableEffectiveAuthObserver'
 const baseObserver = require('./base-observer')
-const contractEventProvider = require('../data-provider/contract-event-provider')
+const globalInfo = require('egg-freelog-base/globalInfo')
 
 /**
  * 用户与presentable签订的合同首次激活观察者
@@ -27,20 +27,20 @@ module.exports = class PresentableEffectiveAuthObserver extends baseObserver {
      * @param model 参考mysql-table:contractCount
      */
     async update(model) {
-        if (model.countType !== eggApp.eventCountType.PresentableContractEffectiveAuth) {
+        if (model.countType !== globalInfo.app.eventCountType.PresentableContractEffectiveAuth) {
             return
         }
         this.contractCount = model
 
         await contractEventProvider.getContractEvents({contractId: model.contractId, status: 0}, [
-            eggApp.eventRegisterType.contractEffectiveAuthCount,
-            eggApp.eventRegisterType.contractEffectiveAuthIncreaseCount
+            globalInfo.app.eventRegisterType.contractEffectiveAuthCount,
+            globalInfo.app.eventRegisterType.contractEffectiveAuthIncreaseCount
         ]).then().each(eventRegister => {
             switch (eventRegister.eventType) {
-                case eggApp.eventRegisterType.contractEffectiveAuthCount:
+                case globalInfo.app.eventRegisterType.contractEffectiveAuthCount:
                     this.contractEffectiveAuthCountHandler(eventRegister)
                     break
-                case eggApp.eventRegisterType.contractEffectiveAuthIncreaseCount:
+                case globalInfo.app.eventRegisterType.contractEffectiveAuthIncreaseCount:
                     this.contractEffectiveAuthIncreaseCountHandler(eventRegister)
                     break
             }
@@ -61,7 +61,7 @@ module.exports = class PresentableEffectiveAuthObserver extends baseObserver {
         /**
          * 发布回调事件
          */
-        eggApp.rabbitClient.publish({
+        globalInfo.app.rabbitClient.publish({
             routingKey: eventRegister.eventParams.routingKey,
             eventName: eventRegister.eventParams.eventName,
             body: this.contractCount
@@ -82,7 +82,7 @@ module.exports = class PresentableEffectiveAuthObserver extends baseObserver {
         /**
          * 发布回调事件
          */
-        eggApp.rabbitClient.publish({
+        globalInfo.app.rabbitClient.publish({
             routingKey: eventRegister.eventParams.routingKey,
             eventName: eventRegister.eventParams.eventName,
             body: this.contractCount

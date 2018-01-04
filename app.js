@@ -4,14 +4,10 @@
 
 'use strict'
 
-const dataProvider = require('./app/data-provider/index')
-const eventSubscribe = require('./event-core/event-subscribe')
+const path = require('path')
 
 module.exports = async (app) => {
-
-    global.eggApp = app
-
-    dataProvider.registerToApp(app)
-    
-    await eventSubscribe.subscribeRabbit(app)
+    app.beforeStart(async () => {
+        app.loader.loadToApp(path.join(app.config.baseDir, 'app/event-core'), 'eventCore');
+    })
 }
