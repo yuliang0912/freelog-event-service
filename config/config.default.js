@@ -101,7 +101,7 @@ module.exports = appInfo => {
 
         rabbitMq: {
             connOptions: {
-                host: '192.168.164.129',
+                host: '172.18.215.224',
                 port: 5672,
                 login: 'guest',
                 password: 'guest',
