@@ -76,9 +76,9 @@ module.exports = appInfo => {
         /**
          * DB-mysql相关配置
          */
-        dbConfig: {
+        knex: {
             contract: {
-                client: 'mysql2',
+                client: 'mysql',
                 connection: {
                     host: '192.168.0.99',
                     user: 'root',
@@ -88,20 +88,32 @@ module.exports = appInfo => {
                     timezone: '+08:00',
                     bigNumberStrings: true,
                     supportBigNumbers: true,
-                    connectTimeout: 10000
+                    connectTimeout: 10000,
+                    typeCast: (field, next) => {
+                        if (field.type === 'JSON') {
+                            return JSON.parse(field.string())
+                        }
+                        return next()
+                    }
                 },
                 pool: {
-                    maxConnections: 50,
-                    minConnections: 2,
+                    max: 10, min: 2,
+                    afterCreate: (conn, done) => {
+                        conn.on('error', err => {
+                            console.log(`mysql connection error : ${err.toString()}`)
+                            err.fatal && globalInfo.app.knex.resource.client.pool.destroy(conn)
+                        })
+                        done()
+                    }
                 },
-                acquireConnectionTimeout: 10000,
+                acquireConnectionTimeout: 800,
                 debug: false
             },
         },
 
         rabbitMq: {
             connOptions: {
-                host: '172.18.215.224',
+                host: '192.168.164.129',
                 port: 5672,
                 login: 'guest',
                 password: 'guest',
@@ -112,13 +124,7 @@ module.exports = appInfo => {
                 reconnectBackoffTime: 10000  //10秒尝试连接一次
             },
             exchange: {
-                name: 'freelog-event-exchange',
-                options: {
-                    type: 'topic',
-                    autoDelete: false,
-                    confirm: true,
-                    durable: true
-                }
+                name: 'freelog-event-exchange'
             },
             queues: [
                 {

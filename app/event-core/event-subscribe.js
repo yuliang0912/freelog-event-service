@@ -6,9 +6,9 @@
 
 const rabbit = require('../extend/helper/rabbit_mq_client')
 
-module.exports = async app => {
-    await new rabbit(app.config.rabbitMq).connect().then((client) => {
+module.exports = app => {
 
+    new rabbit(app.config.rabbitMq).connect().then((client) => {
         //订阅合同相关的事件注册队列
         client.subscribe('event-fsm-event-register-queue', app.eventCore.eventHandlerMap.execEvent)
 

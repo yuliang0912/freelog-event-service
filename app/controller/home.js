@@ -1,10 +1,11 @@
 'use strict';
 
-module.exports = app => {
-  class HomeController extends app.Controller {
-    * index() {
-      this.ctx.body = 'hi, egg';
+const Controller = require('egg').Controller
+
+module.exports = class GroupController extends Controller {
+
+    async index(ctx) {
+        let datalist = await ctx.dal.contractEventProvider.deleteContractEvent({eventId: 1})
+        ctx.success(datalist)
     }
-  }
-  return HomeController;
-};
+}

@@ -5,7 +5,6 @@
 'use strict';
 
 global.Promise = require('bluebird')
-console.log(new Date())
 
 require('egg').startCluster({
     baseDir: __dirname,

@@ -4,9 +4,7 @@
 
 'use strict';
 
-module.exports = {
-    freelogBase: {
-        enable: true,
-        package: "egg-freelog-base",
-    }
-}
+exports.freelogDataBase = {
+    enable: true,
+    package: 'egg-freelog-database',
+};

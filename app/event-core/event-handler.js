@@ -9,9 +9,6 @@ const uuid = require('node-uuid')
 const contractCountSubject = require('../observer/index').contractCountSubject()
 
 module.exports = app => {
-
-    const provider = app.dataProvider
-
     return {
         /**
          * 合同首次激活事件
@@ -23,8 +20,8 @@ module.exports = app => {
                 countType: app.eventCountType.PresentableContractEffectiveAuth
             }
 
-            await app.contractCountProvider.addContractCount(model).then(() => {
-                return app.contractCountProvider.getContractCount(model).first()
+            await app.dal.contractCountProvider.addContractCount(model).then(() => {
+                return app.dal.contractCountProvider.getContractCount(model)
             }).then(contractCountModel => {
                 contractCountSubject.setContractCount(contractCountModel)
             }).catch(console.error)
@@ -57,7 +54,7 @@ module.exports = app => {
                 return
             }
 
-            await provider.contractEventProvider.registerContractEvent(model).catch(() => {
+            await app.dal.contractEventProvider.registerContractEvent(model).catch(() => {
                 console.log('register contract event error:', model)
             })
             messageObject.acknowledge(false)
@@ -72,7 +69,7 @@ module.exports = app => {
          * @returns {Promise.<void>}
          */
         async unRegisterEventHandler(message, headers, deliveryInfo, messageObject){
-            await provider.contractEventProvider.deleteContractEvent({
+            await app.dal.contractEventProvider.deleteContractEvent({
                 eventId: message.eventId,
                 contractId: message.contractId
             }).catch(console.error)

@@ -27,20 +27,21 @@ module.exports = class PresentableEffectiveAuthObserver extends baseObserver {
      * @param model 参考mysql-table:contractCount
      */
     async update(model) {
-        if (model.countType !== globalInfo.app.eventCountType.PresentableContractEffectiveAuth) {
+        let app = globalInfo.app
+        if (model.countType !== app.eventCountType.PresentableContractEffectiveAuth) {
             return
         }
         this.contractCount = model
 
-        await contractEventProvider.getContractEvents({contractId: model.contractId, status: 0}, [
-            globalInfo.app.eventRegisterType.contractEffectiveAuthCount,
-            globalInfo.app.eventRegisterType.contractEffectiveAuthIncreaseCount
+        await app.dal.contractEventProvider.getContractEvents({contractId: model.contractId, status: 0}, [
+            app.eventRegisterType.contractEffectiveAuthCount,
+            app.eventRegisterType.contractEffectiveAuthIncreaseCount
         ]).then().each(eventRegister => {
             switch (eventRegister.eventType) {
-                case globalInfo.app.eventRegisterType.contractEffectiveAuthCount:
+                case app.eventRegisterType.contractEffectiveAuthCount:
                     this.contractEffectiveAuthCountHandler(eventRegister)
                     break
-                case globalInfo.app.eventRegisterType.contractEffectiveAuthIncreaseCount:
+                case app.eventRegisterType.contractEffectiveAuthIncreaseCount:
                     this.contractEffectiveAuthIncreaseCountHandler(eventRegister)
                     break
             }
