@@ -27,6 +27,16 @@ module.exports = appInfo => {
             createDate: "2017-10-20T16:38:17.000Z",
             updateDate: "2017-11-01T15:53:29.000Z",
             tokenType: "local"
+        },
+
+        rabbitMq: {
+            connOptions: {
+                host: '39.108.77.211',
+                port: 5672,
+                login: 'guest',
+                password: 'guest',
+                authMechanism: 'AMQPLAIN'
+            }
         }
     }
 }

@@ -10,9 +10,10 @@ COPY . /data/freelog-event-service
 
 RUN npm install
 
-ENV EGG_SERVER_ENV prod
-ENV PORT 7010
+ENV NODE_ENV test
+ENV EGG_SERVER_ENV test
+ENV PORT 5010
 
-EXPOSE 7010
+EXPOSE 5010
 
 CMD [ "npm", "start" ]
