@@ -4,7 +4,7 @@
 module.exports = appInfo => {
     return {
 
-        gatewayUrl: "http://172.18.215.224:8895",
+        gatewayUrl: "http://172.18.215.224:8895/test",
 
         knex: {
             contract: {
