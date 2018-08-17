@@ -2,6 +2,11 @@
 
 module.exports = appInfo => {
     const config = {
+
+        cluster: {
+            listen: {port: 7010}
+        },
+
         keys: '20ab72d9397ff78c5058a106c635f008',
 
         i18n: {
@@ -29,7 +34,6 @@ module.exports = appInfo => {
         },
 
         middleware: ['errorHandler'],
-
 
         /**
          * mongoDB配置
@@ -71,44 +75,12 @@ module.exports = appInfo => {
             errCodeEnum: {}
         },
 
+        logger : {level: "DEBUG"},
+
         gatewayUrl: "http://api.freelog.com",
 
-        /**
-         * DB-mysql相关配置
-         */
-        knex: {
-            contract: {
-                client: 'mysql',
-                connection: {
-                    host: '192.168.0.99',
-                    user: 'root',
-                    password: 'yuliang@@',
-                    database: 'fr_contract',
-                    charset: 'utf8',
-                    timezone: '+08:00',
-                    bigNumberStrings: true,
-                    supportBigNumbers: true,
-                    connectTimeout: 10000,
-                    typeCast: (field, next) => {
-                        if (field.type === 'JSON') {
-                            return JSON.parse(field.string())
-                        }
-                        return next()
-                    }
-                },
-                pool: {
-                    max: 10, min: 2,
-                    afterCreate: (conn, done) => {
-                        conn.on('error', err => {
-                            console.log(`mysql connection error : ${err.toString()}`)
-                            err.fatal && globalInfo.app.knex.resource.client.pool.destroy(conn)
-                        })
-                        done()
-                    }
-                },
-                acquireConnectionTimeout: 800,
-                debug: false
-            },
+        mongoose: {
+            url: "mongodb://127.0.0.1:27017/event"
         },
 
         rabbitMq: {
@@ -117,7 +89,8 @@ module.exports = appInfo => {
                 port: 5672,
                 login: 'guest',
                 password: 'guest',
-                authMechanism: 'AMQPLAIN'
+                authMechanism: 'AMQPLAIN',
+                heartbeat: 120  //每2分钟保持一次连接
             },
             implOptions: {
                 reconnect: true,
@@ -133,7 +106,11 @@ module.exports = appInfo => {
                     routingKeys: [
                         {
                             exchange: 'freelog-contract-exchange',
-                            routingKey: 'event.register.*'
+                            routingKey: 'contract.event.register'
+                        },
+                        {
+                            exchange: 'freelog-contract-exchange',
+                            routingKey: 'contract.event.unregister'
                         }
                     ]
                 },
@@ -148,7 +125,31 @@ module.exports = appInfo => {
                     ]
                 }
             ]
-        }
+        },
+
+        /**
+         * 周期设置
+         */
+        cycleSetting: [
+            {
+                startCycleNumber: 1,
+                beginDate: new Date(2018, 1, 1), //大于等于此值
+                endDate: new Date(2019, 1, 1), //小于此值
+                cycleIntervalMillisecond: 14400000  //4hour
+            },
+            {
+                startCycleNumber: 2191,
+                beginDate: new Date(2019, 1, 1),
+                endDate: new Date(2029, 12, 31, 23, 59, 59),
+                cycleIntervalMillisecond: 14400000  //4hour
+            }
+        ],
+
+        customLoader: [
+            {name: 'eventHandler', dir: 'app/event-handler'},
+            {name: 'timerCycleService', dir: 'app/cycle-timer-service'},
+            {name: 'mqSubscribe', dir: 'app/mq-subscribe'},
+        ]
     }
 
     return config;

@@ -2,11 +2,20 @@
 
 飞致网络事件处理服务
 
-## QuickStart
+ 事件服务器主要设计目标为
 
-<!-- add docs here for user -->
+ 1.接受合约注册事件,当事件条件满足时,触发回调
 
-see [egg docs][egg] for more detail.
+ 2.接受平台其他系统的事件,然后根据合约注册的事件条件,自动计算是否满足触发条件.
 
 
-[egg]: https://eggjs.org
+ 事件服务主要侦听的事件为
+
+ 1.C端用户与节点presentable签约事件.
+
+ 2.周期事件
+
+ 3.时间到达事件
+
+ 4.违约类型的事件
+
