@@ -7,19 +7,19 @@ module.exports = class DateArrivedEventTriggerHandler {
 
     constructor(app) {
         this.app = app
-        this.queue = queue(this.dateArrivedEventTriggerHandler.bind(this), 50)
+        this.queue = queue(this.dateArrivedEventTriggerHandle.bind(this), 50)
     }
 
-    async handler(eventInfo) {
+    async handle(eventInfo) {
         this.queue.push(eventInfo, this.callback.bind(this))
     }
 
     /**
-     * 时间到达时间处理
+     * 时间到达事件处理
      * @param triggerUnixTimestamp
      * @returns {Promise<void>}
      */
-    async dateArrivedEventTriggerHandler(eventInfo) {
+    async dateArrivedEventTriggerHandle(eventInfo) {
         await this.sendToMessageQueue(eventInfo).then(result => {
             eventInfo.eventTriggerSuccess()
         }).catch(error => {
@@ -44,8 +44,8 @@ module.exports = class DateArrivedEventTriggerHandler {
      */
     callback(error) {
         if (error instanceof Error) {
-            console.log("end-of-cycle-event-handler", '事件执行异常', error)
-            this.app.logger.error("end-of-cycle-event-handler", '事件执行异常', error)
+            console.log("end-of-cycle-event-handler", '事件执行异常', ...arguments)
+            this.app.logger.error("end-of-cycle-event-handler", '事件执行异常', ...arguments)
         }
     }
 }

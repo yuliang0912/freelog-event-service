@@ -3,7 +3,7 @@
 const Patrun = require('patrun')
 const eventTypeEnum = require('../enum/event-type-enum')
 const rabbit = require('../extend/helper/rabbit-mq-client')
-const {RegisterOrUnregisterEvent} = require('../enum/app-event-emitter-enum')
+const {RegisterOrUnregisterEvent, OutsideEvent, outsideEvents} = require('../enum/app-event-emitter-enum')
 
 module.exports = class RabbitMessageQueueSubscribeHandler {
 
@@ -22,9 +22,9 @@ module.exports = class RabbitMessageQueueSubscribeHandler {
         new rabbit(this.app.config.rabbitMq).connect().then(client => {
             this.rabbitClient = client
             //订阅合同相关的事件注册队列
-            client.subscribe('event-fsm-event-register-queue', this.handleMessage.bind(this))
-            //订阅其他可能触发事件中心支持的事件的队列
-            client.subscribe('event-subscribe-queue', this.handleMessage.bind(this))
+            client.subscribe('event#fsm-event-register-queue', this.handleMessage.bind(this))
+            //presentable消费数量变更队列
+            client.subscribe('event#presentable-consumption-count-changed-queue', this.handleMessage.bind(this))
         }).catch(console.error)
     }
 
@@ -72,24 +72,26 @@ module.exports = class RabbitMessageQueueSubscribeHandler {
             this.eventRegisterOrUnregister(message, headers.eventName, 'unregister')
         })
 
+        //presentable消费统计数据变更事件
+        handlerPatrun.add({routingKey: 'statistics.presentable.consumption'}, ({message, headers}) => {
+            this.app.emit(OutsideEvent, outsideEvents.PresentableConsumptionCountChangedEvent, message, headers.eventName)
+        })
+
+
+        //事件注册or取消注册注入
         //注册or取消注册 endOfCycle事件
-        handlerPatrun.add({registerUnRegisterEventType: 'endOfCycle'}, ({registerType, message}) => {
-            this.app.emit(RegisterOrUnregisterEvent, eventTypeEnum.EndOfCycleEvent, registerType, message)
+        handlerPatrun.add({registerUnRegisterEventType: 'endOfCycle'}, (...args) => {
+            this.app.emit(RegisterOrUnregisterEvent, eventTypeEnum.EndOfCycleEvent, ...args)
         })
 
         //注册or取消注册 dateArrived事件
-        handlerPatrun.add({registerUnRegisterEventType: 'dateArrived'}, ({registerType, message}) => {
-            this.app.emit(RegisterOrUnregisterEvent, eventTypeEnum.DateArrivedEvent, registerType, message)
-        })
-
-        //注册or取消注册 PresentableSignEvent事件
-        handlerPatrun.add({registerUnRegisterEventType: 'PresentableSignEvent'}, ({registerType, message}) => {
-            this.app.emit(RegisterOrUnregisterEvent, eventTypeEnum.PresentableSignEvent, registerType, message)
+        handlerPatrun.add({registerUnRegisterEventType: 'dateArrived'}, (...args) => {
+            this.app.emit(RegisterOrUnregisterEvent, eventTypeEnum.DateArrivedEvent, ...args)
         })
 
         //注册or取消注册 PresentableSignEvent计次统计事件
-        handlerPatrun.add({registerUnRegisterEventType: 'PresentableSignCountTallyEvent'}, ({registerType, message}) => {
-            this.app.emit(RegisterOrUnregisterEvent, eventTypeEnum.PresentableSignCountTallyEvent, registerType, message)
+        handlerPatrun.add({registerUnRegisterEventType: 'presentableConsumptionCountTallyEvent'}, (...args) => {
+            this.app.emit(RegisterOrUnregisterEvent, eventTypeEnum.PresentableConsumptionCountTallyEvent, ...args)
         })
     }
 
@@ -103,6 +105,6 @@ module.exports = class RabbitMessageQueueSubscribeHandler {
             this.app.logger.info(`register-unregister-handler未注册${eventName}事件的处理函数`)
             return
         }
-        eventHandler({registerType, message})
+        eventHandler(registerType, message, eventName)
     }
 }

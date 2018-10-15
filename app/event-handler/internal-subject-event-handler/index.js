@@ -5,7 +5,7 @@ const {internalSubjectEvents} = require('../../enum/app-event-emitter-enum')
 const TallyEventHandler = require('./tally-event-trigger-handler')
 const EndOfCycleEventHandler = require('./end-of-cycle-event-trigger-handler')
 const DateArrivedEventHandler = require('./date-arrived-event-trigger-handler')
-const SignPresentableEventHandler = require('./sign-presentable-event-trigger-handler')
+const EventRegisterCompletedEventHandler = require('./event-register-completed-handler')
 
 module.exports = class OutsideEventHandler {
 
@@ -19,7 +19,7 @@ module.exports = class OutsideEventHandler {
      * 内部具体主题事件处理入口
      * @param triggerUnixTimestamp
      */
-    handler(eventName, eventInfo) {
+    handle(eventName, eventInfo, ...args) {
 
         const {app, patrun} = this
         if (!eventInfo.isSubjectEvent) {
@@ -34,7 +34,7 @@ module.exports = class OutsideEventHandler {
             app.logger.info(`internal-subject-event-handler:尚未注册事件${eventName}的处理函数`)
             return
         }
-        eventHandler.handler(eventInfo)
+        eventHandler.handle(eventInfo, ...args)
     }
 
     /**
@@ -43,13 +43,12 @@ module.exports = class OutsideEventHandler {
     registerInternalEventHandler() {
 
         const {app, patrun} = this
-        const {DateArrivedEvent, EndOfCycleEvent, PresentableSignEvent, TallyEvent} = internalSubjectEvents
+        const {DateArrivedEvent, EndOfCycleEvent, TallyEvent, RegisterCompletedEvent} = internalSubjectEvents
 
         patrun.add(this._buildPatrunKey(TallyEvent), new TallyEventHandler(app))
         patrun.add(this._buildPatrunKey(EndOfCycleEvent), new EndOfCycleEventHandler(app))
         patrun.add(this._buildPatrunKey(DateArrivedEvent), new DateArrivedEventHandler(app))
-        patrun.add(this._buildPatrunKey(PresentableSignEvent), new SignPresentableEventHandler(app))
-
+        patrun.add(this._buildPatrunKey(RegisterCompletedEvent), new EventRegisterCompletedEventHandler(app))
     }
 
     /**

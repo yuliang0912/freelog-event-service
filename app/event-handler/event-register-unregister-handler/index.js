@@ -5,7 +5,7 @@ const eventTypeEnum = require('../../enum/event-type-enum')
 const EndOfCycleEventHandler = require('./cycle-register-event-handler')
 const TallyRegisterEventHandler = require('./tally-register-event-handler')
 const DateArrivedEventHandler = require('./date-arrived-register-event-handler')
-const EnumerateRegisterEventHandler = require('./enumerate-register-event-handler')
+const {InternalSubjectEvent, internalSubjectEvents} = require('../../enum/app-event-emitter-enum')
 
 module.exports = class OutsideEventHandler {
 
@@ -19,7 +19,7 @@ module.exports = class OutsideEventHandler {
      * 外部事件注册/取消注册事件处理入口
      * @param triggerUnixTimestamp
      */
-    async handler(eventType, registerType, message) {
+    async handle(eventType, registerType, message, eventName) {
 
         const {app, patrun} = this
         const eventHandler = patrun.find(this._buildPatrunKey(eventType))
@@ -29,9 +29,11 @@ module.exports = class OutsideEventHandler {
         }
 
         if (registerType === 'register') {
-            await eventHandler.registerHandler(message, eventType)
+            await eventHandler.registerHandle(message, eventType, eventName).then(() => {
+                this.app.emit(InternalSubjectEvent, internalSubjectEvents.RegisterCompletedEvent, message, eventName)
+            })
         } else {
-            await eventHandler.unregisterHandler(message, eventType)
+            await eventHandler.unregisterHandle(message, eventType, eventName)
         }
     }
 
@@ -41,12 +43,11 @@ module.exports = class OutsideEventHandler {
     registerEventHandler() {
 
         const {app, patrun} = this
-        const {EndOfCycleEvent, DateArrivedEvent, PresentableSignEvent, PresentableSignCountTallyEvent} = eventTypeEnum
+        const {EndOfCycleEvent, DateArrivedEvent, PresentableConsumptionCountTallyEvent} = eventTypeEnum
 
         patrun.add(this._buildPatrunKey(EndOfCycleEvent), new EndOfCycleEventHandler(app))
         patrun.add(this._buildPatrunKey(DateArrivedEvent), new DateArrivedEventHandler(app))
-        patrun.add(this._buildPatrunKey(PresentableSignEvent), new EnumerateRegisterEventHandler(app))
-        patrun.add(this._buildPatrunKey(PresentableSignCountTallyEvent), new TallyRegisterEventHandler(app))
+        patrun.add(this._buildPatrunKey(PresentableConsumptionCountTallyEvent), new TallyRegisterEventHandler(app))
     }
 
     /**

@@ -9,7 +9,7 @@ const Patrun = require('patrun')
 const {outsideEvents} = require('../../enum/app-event-emitter-enum')
 const EndOfCycleEventHandler = require('./end-of-cycle-event-handler')
 const DateArrivedEventHandler = require('./date-arrived-event-handler')
-const SignPresentableEventHandler = require('./sign-presentable-event-handler')
+const PresentableConsumptionCountChangedEventHandler = require('./presentable-consumption-count-changed-event-handler')
 
 module.exports = class OutsideEventHandler {
 
@@ -23,8 +23,7 @@ module.exports = class OutsideEventHandler {
      * 外部事件处理入口
      * @param triggerUnixTimestamp
      */
-    handler(outsideEvent, message) {
-
+    handle(outsideEvent, message) {
         const {app, patrun} = this
         const eventHandler = patrun.find(this._buildPatrunKey(outsideEvent))
         if (!eventHandler) {
@@ -32,7 +31,7 @@ module.exports = class OutsideEventHandler {
             return
         }
 
-        eventHandler.handler(message)
+        eventHandler.handle(message)
     }
 
     /**
@@ -41,11 +40,11 @@ module.exports = class OutsideEventHandler {
     registerOutsideEventHandler() {
 
         const {app, patrun} = this
-        const {DateArrivedEvent, EndOfCycleEvent, PresentableSignEvent} = outsideEvents
+        const {DateArrivedEvent, EndOfCycleEvent, PresentableConsumptionCountChangedEvent} = outsideEvents
 
         patrun.add(this._buildPatrunKey(EndOfCycleEvent), new EndOfCycleEventHandler(app))
         patrun.add(this._buildPatrunKey(DateArrivedEvent), new DateArrivedEventHandler(app))
-        patrun.add(this._buildPatrunKey(PresentableSignEvent), new SignPresentableEventHandler(app))
+        patrun.add(this._buildPatrunKey(PresentableConsumptionCountChangedEvent), new PresentableConsumptionCountChangedEventHandler(app))
     }
 
     /**

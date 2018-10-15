@@ -1,6 +1,7 @@
 'use strict'
 
 const appEventEmitterEnum = require('../../enum/app-event-emitter-enum')
+const {EndOfCycleBroadcastEvent} = require('../../enum/mq-event-publish-enum')
 
 module.exports = class EndOfCycleEventHandler {
 
@@ -9,20 +10,19 @@ module.exports = class EndOfCycleEventHandler {
         this.cycleEventRegisterProvider = app.dal.cycleEventRegisterProvider
     }
 
-
-    async handler(cycleNumber) {
+    /**
+     * 周期结束事件处理
+     */
+    async handle(cycleNumber) {
         this.app.logger.info(`接收到周期结束事件,周期号:${cycleNumber}`)
-        await this.endOfCycleEventHandler({cycleNumber})
+        this.sendMessageToMessageQueue(cycleNumber)
+        await this.endOfCycleEventHandle({cycleNumber})
     }
 
     /**
      * 填充队列数据
-     * @param cycleNumber
-     * @param skip
-     * @param limit
-     * @returns {Promise<void>}
      */
-    async endOfCycleEventHandler({cycleNumber, skip = 0, limit = 2000}) {
+    async endOfCycleEventHandle({cycleNumber, skip = 0, limit = 2000}) {
 
         const condition = {cycleNumber: {$in: [0, cycleNumber]}, status: 1}
         const triggerEvents = await this.cycleEventRegisterProvider.find(condition, null, {skip, limit})
@@ -31,8 +31,15 @@ module.exports = class EndOfCycleEventHandler {
             triggerEvents.forEach(item => this.emitEndOfCycleEvent(item))
         }
         if (triggerEvents.length === limit) {
-            await this.endOfCycleEventHandler({cycleNumber, skip: skip + limit, limit})
+            await this.endOfCycleEventHandle({cycleNumber, skip: skip + limit, limit})
         }
+    }
+
+    /**
+     * 发送消息到消息队列
+     */
+    sendMessageToMessageQueue(cycleNumber) {
+        this.app.rabbitClient.publish(Object.assign({}, EndOfCycleBroadcastEvent, {cycleNumber}))
     }
 
     /**

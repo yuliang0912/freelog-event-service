@@ -1,7 +1,7 @@
 'use strict'
 
 const schedule = require('node-schedule')
-const cycleHelper = new (require('./cycle-helper'))
+const cycleHelper = require('egg-freelog-base/app/extend/helper/cycle-helper')
 const {OutsideEvent, outsideEvents} = require('../enum/app-event-emitter-enum')
 
 module.exports = class TimerCycleService {
@@ -16,26 +16,27 @@ module.exports = class TimerCycleService {
     initSchedule() {
         //周期是以整数分钟,小时,天为基准单位划算成毫秒,周期不能超过下一个单位.
         const {cycleIntervalMillisecond} = cycleHelper.getCycleConfigSegment(new Date())
+
         this.cycleIntervalMillisecond = cycleIntervalMillisecond
 
         var cronScheduling = null
+        //一小时为单位
+        if (cycleIntervalMillisecond >= 3600000) {
+            const hours = Math.ceil(cycleIntervalMillisecond / 3600000)
+            cronScheduling = `0 0 */${hours} * * * *`
+        }
         //以天为单位
-        if (cycleIntervalMillisecond >= 86400000) {
+        else if (cycleIntervalMillisecond >= 86400000) {
             const days = Math.ceil(cycleIntervalMillisecond / 86400000)
             cronScheduling = `0 0 * */${days} * * *`
         }
-        else if (cycleIntervalMillisecond >= 3600000) {
-            const hours = Math.ceil(cycleIntervalMillisecond / 3600000)
-            cronScheduling = `0 0 */${hours} * * * *`
-        } else {
-            const seconds = Math.ceil(cycleIntervalMillisecond / 60000)
-            cronScheduling = `0 */${seconds} * * * * *`
+        //以分钟为单位
+        else {
+            const minutes = Math.ceil(cycleIntervalMillisecond / 60000)
+            cronScheduling = `0 */${minutes} * * * * *`
         }
 
         this.currentSchedule = schedule.scheduleJob(cronScheduling, this.callback.bind(this))
-        setTimeout(() => {
-            this.app.emit(OutsideEvent, outsideEvents.PresentableSignEvent, {presentableId: '5b0f57d1503ced3fbc3dee71'})
-        }, 1000)
     }
 
     /**

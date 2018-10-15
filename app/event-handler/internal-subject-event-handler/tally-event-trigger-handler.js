@@ -8,17 +8,17 @@ module.exports = class TallyEventTriggerHandler {
 
     constructor(app) {
         this.app = app
-        this.queue = queue(this.tallyEventTriggerHandler.bind(this), 50)
+        this.queue = queue(this.tallyEventTriggerHandle.bind(this), 50)
     }
 
-    async handler(eventInfo) {
+    async handle(eventInfo) {
         this.queue.push(eventInfo, this.callback.bind(this))
     }
 
     /**
      * 签约presentable事件处理
      */
-    async tallyEventTriggerHandler(eventInfo, ...args) {
+    async tallyEventTriggerHandle(eventInfo) {
         await this.sendToMessageQueue(eventInfo).then(result => {
             eventInfo.eventTriggerSuccess()
         }).catch(error => {
@@ -33,9 +33,8 @@ module.exports = class TallyEventTriggerHandler {
      * @param contractDateArrivedEvent
      */
     async sendToMessageQueue(eventInfo) {
-        const {rabbitClient} = this.app
-        if (eventInfo.eventType === eventTypeEnum.PresentableSignCountTallyEvent) {
-            rabbitClient.publish(Object.assign({}, mqEventPublishEnum.PresentableSignCountTallyEvent, {body: eventInfo.callbackParams}))
+        if (eventInfo.eventType === eventTypeEnum.PresentableConsumptionCountTallyEvent) {
+            this.app.rabbitClient.publish(Object.assign({}, mqEventPublishEnum.PresentableConsumptionCountTallyEvent, {body: eventInfo.callbackParams}))
         }
     }
 

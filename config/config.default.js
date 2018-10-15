@@ -36,13 +36,6 @@ module.exports = appInfo => {
         middleware: ['errorHandler'],
 
         /**
-         * mongoDB配置
-         */
-        mongo: {
-            uri: 'mongodb://192.168.0.99:27017/auth'
-        },
-
-        /**
          * 上传文件相关配置
          */
         uploadConfig: {
@@ -75,7 +68,7 @@ module.exports = appInfo => {
             errCodeEnum: {}
         },
 
-        logger : {level: "DEBUG"},
+        logger: {level: "DEBUG"},
 
         gatewayUrl: "http://api.freelog.com",
 
@@ -101,7 +94,7 @@ module.exports = appInfo => {
             },
             queues: [
                 {
-                    name: 'event-fsm-event-register-queue',
+                    name: 'event#fsm-event-register-queue',
                     options: {autoDelete: false, durable: true},
                     routingKeys: [
                         {
@@ -115,41 +108,19 @@ module.exports = appInfo => {
                     ]
                 },
                 {
-                    name: 'event-subscribe-queue',
+                    name: 'event#presentable-consumption-count-changed-queue',
                     options: {autoDelete: false, durable: true},
                     routingKeys: [
                         {
-                            exchange: 'freelog-contract-exchange',
-                            routingKey: 'contract.active.contract'
+                            exchange: 'freelog-statistics-exchange',
+                            routingKey: 'statistics.presentable.consumption'
                         }
                     ]
                 }
             ]
         },
 
-        /**
-         * 周期设置
-         */
-        cycleSetting: [
-            {
-                startCycleNumber: 1,
-                beginDate: new Date(2018, 1, 1), //大于等于此值
-                endDate: new Date(2019, 1, 1), //小于此值
-                cycleIntervalMillisecond: 14400000  //4hour
-            },
-            {
-                startCycleNumber: 2191,
-                beginDate: new Date(2019, 1, 1),
-                endDate: new Date(2029, 12, 31, 23, 59, 59),
-                cycleIntervalMillisecond: 14400000  //4hour
-            }
-        ],
-
-        customLoader: [
-            {name: 'eventHandler', dir: 'app/event-handler'},
-            {name: 'timerCycleService', dir: 'app/cycle-timer-service'},
-            {name: 'mqSubscribe', dir: 'app/mq-subscribe'},
-        ]
+        customLoader: ['app/event-handler', 'app/mq-subscribe', 'app/cycle-timer-service/index.js', 'app/test']
     }
 
     return config;

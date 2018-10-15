@@ -13,12 +13,7 @@ module.exports = class GroupController extends Controller {
 
     }
 
-
     async unregisterEvent(ctx) {
-
-    }
-
-    async index(ctx){
 
     }
 }

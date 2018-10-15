@@ -1,24 +1,27 @@
 'use strict'
 
 const EventBaseSchema = require('./base-event-schema')
-const {PresentableSignCountTallyEvent} = require('../enum/event-type-enum')
 const comparisonOperatorEnum = require('../enum/comparison-operator-enum')
+const {PresentableConsumptionCountTallyEvent} = require('../enum/event-type-enum')
 
 //计数器事件注册
 module.exports = app => {
 
     const mongoose = app.mongoose
+    const TallyEventRegisterSchema = EventBaseSchema.clone()
 
-    const EventResultComparisonSchema = new mongoose.Schema({
-        eventNo: {type: String, required: true},  //事件ID,随机产生
-        eventType: {type: Number, required: true}, //计数事件关心的基础枚举事件类型
-        comparisonValue: {type: Number, required: true}, //表达式结果对比值
-        comparisonOperator: {type: Number, required: true}, //比较运算符(与或运算计算).
-    }, {_id: false})
+    TallyEventRegisterSchema.add({comparisonValue: {type: Number, required: true}}) //比较值
+    TallyEventRegisterSchema.add({comparisonOperator: {type: Number, required: true}}) //比较运算符(与或运算计算).
+    TallyEventRegisterSchema.add({
+        eventType: {
+            type: Number,
+            enum: [PresentableConsumptionCountTallyEvent],
+            required: true
+        }
+    })
 
-    //获取订阅事件的值与预设值对比结果
-    EventResultComparisonSchema.method('contrast', function (result) {
-
+    //是否匹配对比值结果
+    TallyEventRegisterSchema.method('isMatch', function (result) {
         const {comparisonValue, comparisonOperator} = this
         switch (comparisonOperator) {
             case comparisonOperatorEnum.Equal:
@@ -37,10 +40,6 @@ module.exports = app => {
                 return false
         }
     })
-
-    const TallyEventRegisterSchema = EventBaseSchema.clone()
-    TallyEventRegisterSchema.add({subscribeEnumEvent: EventResultComparisonSchema})
-    TallyEventRegisterSchema.add({eventType: {type: Number, enum: [PresentableSignCountTallyEvent], required: true}})
 
     return mongoose.model('tally-event-register', TallyEventRegisterSchema)
 }

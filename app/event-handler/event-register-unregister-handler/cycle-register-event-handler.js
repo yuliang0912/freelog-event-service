@@ -4,7 +4,7 @@
 
 'use strict'
 
-const cycleHelper = new (require('../../cycle-timer-service/cycle-helper'))
+const cycleHelper = require('egg-freelog-base/app/extend/helper/cycle-helper')
 
 module.exports = class CycleRegisterEventHandler {
 
@@ -16,7 +16,7 @@ module.exports = class CycleRegisterEventHandler {
     /**
      * 事件注册处理
      */
-    async registerHandler(message) {
+    async registerHandle(message) {
 
         const {subjectId, eventRegisterNo, callbackParams, applyRegisterDate, cycleCount, initiatorType} = message
         const cycleNumber = cycleHelper.getCycleNumber(new Date(applyRegisterDate))
@@ -24,18 +24,18 @@ module.exports = class CycleRegisterEventHandler {
 
         this.app.logger.info(`register end of cycle event, current cycleNumber:${cycleNumber}, trigger cycleNumber:${triggerCycleNumber}`)
 
-        await this.cycleEventRegisterProvider.create({
+        return await this.cycleEventRegisterProvider.create({
             subjectId, eventRegisterNo, initiatorType, callbackParams, cycleNumber: triggerCycleNumber,
-        }).catch(error => this.errorHandler(error, message))
+        }).catch(error => this.errorHandle(error, message))
     }
 
     /**
      * 事件取消注册处理
      */
-    async unregisterHandler(message) {
+    async unregisterHandle(message) {
         const {eventRegisterNo, initiatorType} = message
         await this.cycleEventRegisterProvider.deleteOne({eventRegisterNo, initiatorType})
-            .catch(error => this.errorHandler(error, message))
+            .catch(error => this.errorHandle(error, message))
     }
 
     /**
@@ -43,7 +43,7 @@ module.exports = class CycleRegisterEventHandler {
      * @param error
      * @param message
      */
-    errorHandler(error, message) {
+    errorHandle(error, message) {
         this.app.logger.error('cycle-register-event-handler事件执行异常', error, message)
     }
 }

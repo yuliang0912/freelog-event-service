@@ -9,19 +9,18 @@ module.exports = class DateArrivedEventHandler {
         this.dateArrivedEventRegisterProvider = app.dal.dateArrivedEventRegisterProvider
     }
 
-    async handler(triggerUnixTimestamp) {
-        await this.dateArrivedEventHandler({triggerUnixTimestamp})
+    /**
+     * 外部时间到达事件处理
+     */
+    async handle(triggerUnixTimestamp) {
+        await this.dateArrivedEventHandle({triggerUnixTimestamp})
         this.app.logger.info(`接收到时间到达事件,指定的时间为:${new Date(triggerUnixTimestamp * 1000).toISOString()}`)
     }
 
     /**
      * 填充队列数据
-     * @param cycleNumber
-     * @param skip
-     * @param limit
-     * @returns {Promise<void>}
      */
-    async dateArrivedEventHandler({triggerUnixTimestamp, skip = 0, limit = 2000}) {
+    async dateArrivedEventHandle({triggerUnixTimestamp, skip = 0, limit = 2000}) {
 
         const triggerEvents = await this.dateArrivedEventRegisterProvider.find({
             triggerUnixTimestamp, status: 1
@@ -31,7 +30,7 @@ module.exports = class DateArrivedEventHandler {
             triggerEvents.forEach(item => this.emitDateArrivedEvent(item))
         }
         if (triggerEvents.length === limit) {
-            await this.dateArrivedEventHandler({triggerUnixTimestamp, skip: skip + limit, limit})
+            await this.dateArrivedEventHandle({triggerUnixTimestamp, skip: skip + limit, limit})
         }
     }
 

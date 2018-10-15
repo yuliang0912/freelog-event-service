@@ -3,6 +3,14 @@
 module.exports = {
 
     /**
+     * 发送周期结束事件广播
+     */
+    EndOfCycleBroadcastEvent: {
+        routingKey: 'event.endOfCycle.event',
+        eventName: 'endOfCycleEvent'
+    },
+
+    /**
      * 注册的周期结束事件触发
      */
     EndOfCycleTriggerEvent: {
@@ -21,16 +29,15 @@ module.exports = {
     /**
      * presentable签约数量
      */
-    PresentableSignEvent: {
+    PresentableConsumptionCountTallyEvent: {
         routingKey: 'register.event.trigger',
-        eventName: 'presentableSignEvent'
+        eventName: 'presentableConsumptionCountTallyEvent'
     },
 
     /**
-     * presentable签约数量
+     * 事件注册完成
      */
-    PresentableSignCountTallyEvent: {
-        routingKey: 'register.event.trigger',
-        eventName: 'presentableSignCountTallyEvent'
+    EventRegisterCompletedEvent: {
+        routingKey: 'register.event.completed',
     }
 }

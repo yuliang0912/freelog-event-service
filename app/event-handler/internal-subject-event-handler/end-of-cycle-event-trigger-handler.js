@@ -7,11 +7,11 @@ module.exports = class EndOfCycleEventTriggerHandler {
 
     constructor(app) {
         this.app = app
-        this.queue = queue(this.endOfCycleEventHandler.bind(this), 50)
+        this.queue = queue(this.endOfCycleEventHandle.bind(this), 50)
         this.cycleEventRegisterProvider = app.dal.cycleEventRegisterProvider
     }
 
-    async handler(eventInfo) {
+    async handle(eventInfo) {
         this.queue.push(eventInfo, this.callback.bind(this))
     }
 
@@ -20,7 +20,7 @@ module.exports = class EndOfCycleEventTriggerHandler {
      * @param triggerUnixTimestamp
      * @returns {Promise<void>}
      */
-    async endOfCycleEventHandler(eventInfo) {
+    async endOfCycleEventHandle(eventInfo) {
         await this.sendToMessageQueue(eventInfo).then(result => {
             eventInfo.eventTriggerSuccess()
         }).catch(error => {

@@ -7,5 +7,4 @@ module.exports = class TallyStatisticsProvider extends MongoBaseOperation {
     constructor(app) {
         super(app.model.TallyStatistics)
     }
-
 }

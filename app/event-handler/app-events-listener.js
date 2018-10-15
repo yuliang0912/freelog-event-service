@@ -40,7 +40,7 @@ module.exports = class AppEventsListener {
             throw new Error(`尚未注册事件${eventName}的处理者`)
         }
 
-        this.app.on(eventName, eventHandler.handler.bind(eventHandler))
+        this.app.on(eventName, eventHandler.handle.bind(eventHandler))
     }
 
     /**

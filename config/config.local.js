@@ -37,25 +37,7 @@ module.exports = {
         }
     },
 
-    /**
-     * 周期设置
-     */
-    cycleSetting: [
-        {
-            startCycleNumber: 1,
-            beginDate: new Date(2018, 1, 1), //大于等于此值
-            endDate: new Date(2019, 1, 1), //小于此值
-            cycleIntervalMillisecond: 60000  //1分钟
-        },
-        {
-            startCycleNumber: 2191,
-            beginDate: new Date(2019, 1, 1),
-            endDate: new Date(2029, 12, 31, 23, 59, 59),
-            cycleIntervalMillisecond: 14400000  //4hour
-        }
-    ],
-
     logger: {
         level: 'DEBUG',
-    }
+    },
 }

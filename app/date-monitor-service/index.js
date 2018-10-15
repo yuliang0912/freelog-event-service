@@ -1,6 +1,7 @@
 'use strict'
 
 const HashedWheelTimer = require('./hashed-wheel-timer/hashed-wheel-timer')
+
 const TimerService = class TimerService {
 
     constructor() {

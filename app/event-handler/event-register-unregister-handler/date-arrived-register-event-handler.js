@@ -19,7 +19,7 @@ module.exports = class DateArrivedRegisterEventHandler {
     /**
      * 事件注册处理
      */
-    async registerHandler(message) {
+    async registerHandle(message) {
 
         var {subjectId, eventRegisterNo, initiatorType, callbackParams, triggerDate} = message
 
@@ -27,9 +27,9 @@ module.exports = class DateArrivedRegisterEventHandler {
 
         const triggerUnixTimestamp = Math.ceil((triggerDate - UnixTimeStartDate) / 1000)
 
-        await this.dateArrivedEventRegisterProvider.create({
+        const eventInfo = await this.dateArrivedEventRegisterProvider.create({
             subjectId, eventRegisterNo, initiatorType, triggerDate, triggerUnixTimestamp, callbackParams
-        }).catch(error => this.errorHandler(error, message))
+        }).catch(error => this.errorHandle(error, message))
 
         this.app.logger.info(`register date arrived event, trigger date:${triggerDate.toISOString()}`)
 
@@ -37,15 +37,17 @@ module.exports = class DateArrivedRegisterEventHandler {
         if (triggerDate < moment({hour: 24}).toDate()) {
             timerService.addTimerTask(triggerUnixTimestamp, () => this.app.emit(OutsideEvent, outsideEvents.DateArrivedEvent, triggerUnixTimestamp))
         }
+
+        return eventInfo
     }
 
     /**
      * 事件取消注册处理
      */
-    async unregisterHandler(message) {
+    async unregisterHandle(message) {
         const {eventRegisterNo, initiatorType} = message
         await this.dateArrivedEventRegisterProvider.deleteOne({eventRegisterNo, initiatorType})
-            .catch(error => this.errorHandler(error, message))
+            .catch(error => this.errorHandle(error, message))
     }
 
     /**
@@ -53,7 +55,7 @@ module.exports = class DateArrivedRegisterEventHandler {
      * @param error
      * @param message
      */
-    errorHandler(error, message) {
+    errorHandle(error, message) {
         this.app.logger.error('date-arrived-register-event-handler事件执行异常', error, message)
     }
 }

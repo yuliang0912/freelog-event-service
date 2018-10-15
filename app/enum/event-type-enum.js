@@ -15,16 +15,10 @@ module.exports = {
      * 时间到达注册事件
      */
     DateArrivedEvent: 2,
-
+    
     /**
-     * presentable签约事件
+     * presentable消费数量计次事件
      */
-    PresentableSignEvent: 3,
-
-    /**
-     * presentable签约计次统计事件
-     */
-    PresentableSignCountTallyEvent: 4,
-
+    PresentableConsumptionCountTallyEvent: 3
 }
 
