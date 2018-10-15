@@ -1,6 +1,6 @@
 'use strict'
 
-const Patrun = require('Patrun')
+const Patrun = require('patrun')
 const {PresentableConsumptionCountTallyEvent} = require('../../enum/event-type-enum')
 const {InternalSubjectEvent, internalSubjectEvents} = require('../../enum/app-event-emitter-enum')
 
