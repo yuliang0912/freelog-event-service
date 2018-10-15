@@ -12,7 +12,7 @@ module.exports = class AppEventsListener {
     constructor(app) {
         this.app = app
         this.patrun = Patrun()
-        this.registerEventHandler()
+        setImmediate(() => this.registerEventHandler())
         this.registerEventListener()
     }
 
