@@ -39,7 +39,7 @@ module.exports = class EndOfCycleEventHandler {
      * 发送消息到消息队列
      */
     sendMessageToMessageQueue(cycleNumber) {
-        this.app.rabbitClient.publish(Object.assign({}, EndOfCycleBroadcastEvent, {cycleNumber}))
+        this.app.rabbitClient.publish(Object.assign({}, EndOfCycleBroadcastEvent, {body: {cycleNumber}}))
     }
 
     /**
