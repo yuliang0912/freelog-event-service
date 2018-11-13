@@ -40,4 +40,17 @@ module.exports = {
     logger: {
         level: 'DEBUG',
     },
+
+
+    /**
+     * 周期设置
+     */
+    cycleSetting: [
+        {
+            startCycleNumber: 1,
+            beginDate: new Date(2018, 1, 1), //大于等于此值
+            endDate: new Date(2099, 1, 1), //小于此值
+            cycleIntervalMillisecond: 14400000  //4小时
+        }
+    ]
 }

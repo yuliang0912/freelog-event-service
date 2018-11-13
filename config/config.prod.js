@@ -7,7 +7,7 @@
 module.exports = {
 
     gatewayUrl: "http://172.18.215.224:8895",
-    
+
     rabbitMq: {
         connOptions: {
             host: '172.18.215.224',
