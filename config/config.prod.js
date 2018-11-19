@@ -16,5 +16,9 @@ module.exports = {
             password: 'rabbit@freelog',
             authMechanism: 'AMQPLAIN'
         }
-    }
+    },
+
+    mongoose: {
+        url: "mongodb://172.18.215.231:27017/event"
+    },
 }
