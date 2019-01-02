@@ -6,8 +6,6 @@ module.exports = {
         listen: {port: 5010}
     },
 
-    gatewayUrl: "http://172.18.215.224:8895/test",
-
     rabbitMq: {
         connOptions: {
             host: '172.18.215.231',
