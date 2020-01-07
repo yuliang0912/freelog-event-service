@@ -17,6 +17,6 @@ module.exports = {
     },
 
     mongoose: {
-        url: "mongodb://172.18.215.231:27018/event"
+        url: "mongodb://mongo-prod.test:27017/event"
     },
 }
