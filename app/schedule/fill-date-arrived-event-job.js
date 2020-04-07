@@ -20,7 +20,7 @@ module.exports = class EndOfCycleTask extends Subscription {
         return {
             type: 'worker',
             immediate: true, //启动后立即执行一次
-            cron: '0 0 0 */1 * * *', //0点开始每1天执行一次
+            cron: '0 0 0 */1 * *', //0点开始每1天执行一次
         }
     }
 

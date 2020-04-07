@@ -35,22 +35,6 @@ module.exports = appInfo => {
 
         middleware: ['errorHandler'],
 
-        /**
-         * 上传文件相关配置
-         */
-        uploadConfig: {
-            aliOss: {
-                enable: true,
-                accessKeyId: 'LTAIy8TOsSnNFfPb',
-                accessKeySecret: 'Bt5yMbW89O7wMTVQsNUfvYfou5GPsL',
-                bucket: 'freelog-shenzhen',
-                internal: false,
-                region: 'oss-cn-shenzhen',
-                timeout: 180000
-            },
-            amzS3: {}
-        },
-
         multipart: {
             autoFields: true,
             defaultCharset: 'utf8',
@@ -118,7 +102,7 @@ module.exports = appInfo => {
             ]
         },
 
-        customLoader: ['app/event-handler', 'app/mq-subscribe', 'app/cycle-timer-service/index.js', 'app/test']
+        customFileLoader: ['app/event-handler', 'app/mq-subscribe', 'app/cycle-timer-service/index.js', 'app/test']
     }
 
     return config;
