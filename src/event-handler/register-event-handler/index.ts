@@ -58,7 +58,7 @@ export class RegisterEventHandler implements IKafkaSubscribeMessageHandle {
                             break;
                     }
                 }
-                return Promise.all(registerTasks);
+                return Promise.all(registerTasks) as any;
             }).then(() => {
                 callbacks.forEach(callback => callback());
                 resolveOffset(message.offset);
