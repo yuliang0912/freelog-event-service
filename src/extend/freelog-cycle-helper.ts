@@ -17,7 +17,7 @@ export class FreelogCycleHelper {
         const hours = Math.ceil(FreelogCycleHelper.CycleSetting.cycleIntervalMillisecond / 3600000);
         const cronScheduling = `0 0 */${hours} * * *`
         console.log('周期定时任务已启动' + cronScheduling);
-        scheduleJob(`0 */1 * * * *`, () => {
+        scheduleJob(cronScheduling, () => {
             const cycleNumber = this.getCycleNumber(new Date());
             this.kafkaClient.send({
                 topic: 'freelog-singleton-event-trigger-topic', acks: -1, messages: [{

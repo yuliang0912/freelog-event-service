@@ -16,7 +16,6 @@ export class CycleEventReductionHandler {
      * @param cycleNumber
      */
     async handle(cycleNumber: number) {
-        console.log(`接收到周期结束事件,周期号:${cycleNumber}`);
         return this.cycleEventReductionHandle(cycleNumber)
     }
 
