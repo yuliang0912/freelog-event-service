@@ -1,5 +1,4 @@
 import {EggAppInfo} from 'midway';
-import {logLevel} from 'kafkajs';
 
 export default (appInfo: EggAppInfo) => {
     const config: any = {};
@@ -39,13 +38,6 @@ export default (appInfo: EggAppInfo) => {
         csrf: {
             enable: false,
         }
-    };
-
-    config.kafka = {
-        enable: true,
-        clientId: 'freelog-contract-service',
-        logLevel: logLevel.ERROR,
-        brokers: ['192.168.164.165:9090']
     };
 
     return config;
