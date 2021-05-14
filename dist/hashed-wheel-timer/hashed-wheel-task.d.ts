@@ -12,5 +12,5 @@ export declare class HashedWheelTask {
     /**
      * 执行超时任务
      */
-    executeTask(): void;
+    executeTask(): any;
 }

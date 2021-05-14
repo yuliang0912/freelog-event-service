@@ -15,18 +15,16 @@ const client_1 = require("../../kafka/client");
 let ContractEventTriggerHandler = class ContractEventTriggerHandler {
     /**
      * 触发合同事件
-     * @param eventInfo
+     * @param eventInfos
      */
-    async triggerContractEvent(eventInfo) {
-        eventInfo.callbackParams.eventTime = new Date();
+    async triggerContractEvent(eventInfos) {
         return this.kafkaClient.send({
-            topic: 'contract-fsm-event-trigger-topic', acks: -1, messages: [{
+            topic: 'contract-fsm-event-trigger-topic', acks: -1, messages: eventInfos.map(eventInfo => {
+                eventInfo.callbackParams.eventTime = new Date();
+                return {
                     key: eventInfo.subjectId.toString(), value: JSON.stringify(eventInfo.callbackParams)
-                }]
-        }).then(() => {
-            eventInfo.eventTriggerSuccessful();
-        }).catch(() => {
-            eventInfo.eventTriggerFailed();
+                };
+            })
         });
     }
 };
@@ -39,4 +37,4 @@ ContractEventTriggerHandler = __decorate([
     midway_1.scope(midway_1.ScopeEnum.Singleton)
 ], ContractEventTriggerHandler);
 exports.ContractEventTriggerHandler = ContractEventTriggerHandler;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvZXZlbnQtaGFuZGxlci9jb250cmFjdC1ldmVudC10cmlnZ2VyLWhhbmRsZXIvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7O0FBQUEsbUNBQXlEO0FBQ3pELCtDQUErQztBQUkvQyxJQUFhLDJCQUEyQixHQUF4QyxNQUFhLDJCQUEyQjtJQUtwQzs7O09BR0c7SUFDSCxLQUFLLENBQUMsb0JBQW9CLENBQUMsU0FBUztRQUNoQyxTQUFTLENBQUMsY0FBYyxDQUFDLFNBQVMsR0FBRyxJQUFJLElBQUksRUFBRSxDQUFDO1FBQ2hELE9BQU8sSUFBSSxDQUFDLFdBQVcsQ0FBQyxJQUFJLENBQUM7WUFDekIsS0FBSyxFQUFFLGtDQUFrQyxFQUFFLElBQUksRUFBRSxDQUFDLENBQUMsRUFBRSxRQUFRLEVBQUUsQ0FBQztvQkFDNUQsR0FBRyxFQUFFLFNBQVMsQ0FBQyxTQUFTLENBQUMsUUFBUSxFQUFFLEVBQUUsS0FBSyxFQUFFLElBQUksQ0FBQyxTQUFTLENBQUMsU0FBUyxDQUFDLGNBQWMsQ0FBQztpQkFDdkYsQ0FBQztTQUNMLENBQUMsQ0FBQyxJQUFJLENBQUMsR0FBRyxFQUFFO1lBQ1QsU0FBUyxDQUFDLHNCQUFzQixFQUFFLENBQUM7UUFDdkMsQ0FBQyxDQUFDLENBQUMsS0FBSyxDQUFDLEdBQUcsRUFBRTtZQUNWLFNBQVMsQ0FBQyxrQkFBa0IsRUFBRSxDQUFDO1FBQ25DLENBQUMsQ0FBQyxDQUFDO0lBQ1AsQ0FBQztDQUNKLENBQUE7QUFsQkc7SUFEQyxlQUFNLEVBQUU7OEJBQ0ksb0JBQVc7Z0VBQUM7QUFIaEIsMkJBQTJCO0lBRnZDLGdCQUFPLEVBQUU7SUFDVCxjQUFLLENBQUMsa0JBQVMsQ0FBQyxTQUFTLENBQUM7R0FDZCwyQkFBMkIsQ0FxQnZDO0FBckJZLGtFQUEyQiJ9
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvZXZlbnQtaGFuZGxlci9jb250cmFjdC1ldmVudC10cmlnZ2VyLWhhbmRsZXIvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7O0FBQUEsbUNBQXlEO0FBQ3pELCtDQUErQztBQUkvQyxJQUFhLDJCQUEyQixHQUF4QyxNQUFhLDJCQUEyQjtJQUtwQzs7O09BR0c7SUFDSCxLQUFLLENBQUMsb0JBQW9CLENBQUMsVUFBaUI7UUFDeEMsT0FBTyxJQUFJLENBQUMsV0FBVyxDQUFDLElBQUksQ0FBQztZQUN6QixLQUFLLEVBQUUsa0NBQWtDLEVBQUUsSUFBSSxFQUFFLENBQUMsQ0FBQyxFQUFFLFFBQVEsRUFBRSxVQUFVLENBQUMsR0FBRyxDQUFDLFNBQVMsQ0FBQyxFQUFFO2dCQUN0RixTQUFTLENBQUMsY0FBYyxDQUFDLFNBQVMsR0FBRyxJQUFJLElBQUksRUFBRSxDQUFDO2dCQUNoRCxPQUFPO29CQUNILEdBQUcsRUFBRSxTQUFTLENBQUMsU0FBUyxDQUFDLFFBQVEsRUFBRSxFQUFFLEtBQUssRUFBRSxJQUFJLENBQUMsU0FBUyxDQUFDLFNBQVMsQ0FBQyxjQUFjLENBQUM7aUJBQ3ZGLENBQUE7WUFDTCxDQUFDLENBQUM7U0FDTCxDQUFDLENBQUM7SUFDUCxDQUFDO0NBQ0osQ0FBQTtBQWhCRztJQURDLGVBQU0sRUFBRTs4QkFDSSxvQkFBVztnRUFBQztBQUhoQiwyQkFBMkI7SUFGdkMsZ0JBQU8sRUFBRTtJQUNULGNBQUssQ0FBQyxrQkFBUyxDQUFDLFNBQVMsQ0FBQztHQUNkLDJCQUEyQixDQW1CdkM7QUFuQlksa0VBQTJCIn0=

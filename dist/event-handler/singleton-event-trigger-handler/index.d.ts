@@ -1,5 +1,5 @@
 import { IKafkaSubscribeMessageHandle } from '../../interface';
-import { EachBatchPayload } from 'kafkajs';
+import { EachMessagePayload } from 'kafkajs';
 import { CycleEventReductionHandler } from '../event-data-reduction-handler/cycle-event-reduction-handler';
 export declare class SingletonEventTriggerHandler implements IKafkaSubscribeMessageHandle {
     consumerGroupId: string;
@@ -10,5 +10,5 @@ export declare class SingletonEventTriggerHandler implements IKafkaSubscribeMess
      * 消息处理
      * @param payload
      */
-    messageHandle(payload: EachBatchPayload): Promise<void>;
+    messageHandle(payload: EachMessagePayload): Promise<void>;
 }

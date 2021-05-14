@@ -29,13 +29,20 @@ export class DateArrivedEventReductionHandler {
      * @param limit
      */
     async dateArrivedEventReductionHandle(expirationDate: Date, skip = 0, limit = 1000) {
-        const condition = {triggerDate: {$lt: expirationDate}, status: 1};
+        const condition = {
+            triggerDate: {$lt: expirationDate}, status: 1,
+            $where: 'this.triggerCount < this.triggerLimit'
+        };
         const triggerEvents = await this.dateArrivedEventRegisterProvider.find(condition, null, {
             skip, limit, sort: {_id: 1}
         });
         for (const eventInfo of triggerEvents) {
             this.timeoutTaskTimer.addTimerTask(eventInfo._id, eventInfo.triggerDate, () => {
-                this.contractEventTriggerHandler.triggerContractEvent(eventInfo).then();
+                this.contractEventTriggerHandler.triggerContractEvent([eventInfo]).then(() => {
+                    eventInfo.eventTriggerSuccessful();
+                }).catch(error => {
+                    eventInfo.eventTriggerFailed();
+                });
             });
         }
         if (triggerEvents.length === limit) {

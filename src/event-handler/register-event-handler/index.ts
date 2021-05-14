@@ -1,4 +1,4 @@
-import {EachBatchPayload} from 'kafkajs';
+import {EachMessagePayload} from 'kafkajs';
 import {init, inject, plugin, provide, scope, ScopeEnum} from 'midway';
 import {ContractAllowRegisterEventEnum} from '../../enum';
 
@@ -30,43 +30,37 @@ export class RegisterEventHandler implements IKafkaSubscribeMessageHandle {
      * 消息处理
      * @param payload
      */
-    async messageHandle(payload: EachBatchPayload): Promise<void> {
-        const {batch, resolveOffset, heartbeat} = payload;
-        for (const message of batch.messages) {
-            const eventTime = new Date(parseInt(message.timestamp, 10));
-            const contractId = message.key.toString();
-            const registerEvents = JSON.parse(message.value.toString()) as IContractRegisterEventMessage[];
-            const session = await this.mongoose.startSession();
-            const callbacks = [];
-            const callback = (func) => callbacks.push(func);
-            await session.withTransaction(() => {
-                const registerTasks = [];
-                registerTasks.push(this.cycleRegisterEventHandler.cancelRegister(session, contractId));
-                registerTasks.push(this.dateArrivedRegisterEventHandler.cancelRegister(session, contractId));
-                for (const eventInfo of registerEvents) {
-                    eventInfo.eventTime = eventTime;
-                    eventInfo.contractId = contractId;
-                    switch (eventInfo.code) {
-                        case ContractAllowRegisterEventEnum.EndOfCycleEvent:
-                            registerTasks.push(this.cycleRegisterEventHandler.messageHandle(session, contractId, eventInfo));
-                            break;
-                        case ContractAllowRegisterEventEnum.RelativeTimeEvent:
-                        case ContractAllowRegisterEventEnum.AbsolutelyTimeEvent:
-                            registerTasks.push(this.dateArrivedRegisterEventHandler.messageHandle(session, contractId, eventInfo, callback));
-                            break;
-                        default:
-                            break;
-                    }
+    async messageHandle(payload: EachMessagePayload): Promise<void> {
+        const {message} = payload;
+        const eventTime = new Date(parseInt(message.timestamp, 10));
+        const contractId = message.key.toString();
+        const registerEvents = JSON.parse(message.value.toString()) as IContractRegisterEventMessage[];
+        const timeEvents = [];
+        const session = await this.mongoose.startSession();
+        await session.withTransaction(async () => {
+            const registerTasks = [];
+            registerTasks.push(this.cycleRegisterEventHandler.cancelRegister(session, contractId));
+            registerTasks.push(this.dateArrivedRegisterEventHandler.cancelRegister(session, contractId));
+            await Promise.all(registerTasks);
+            for (const eventInfo of registerEvents) {
+                eventInfo.eventTime = eventTime;
+                eventInfo.contractId = contractId;
+                switch (eventInfo.code) {
+                    case ContractAllowRegisterEventEnum.EndOfCycleEvent:
+                        await this.cycleRegisterEventHandler.messageHandle(session, contractId, eventInfo);
+                        break;
+                    case ContractAllowRegisterEventEnum.RelativeTimeEvent:
+                    case ContractAllowRegisterEventEnum.AbsolutelyTimeEvent:
+                        await this.dateArrivedRegisterEventHandler.messageHandle(session, contractId, eventInfo).then(x => timeEvents.push(x));
+                        break;
+                    default:
+                        break;
                 }
-                return Promise.all(registerTasks) as any;
-            }).then(() => {
-                callbacks.forEach(callback => callback());
-                resolveOffset(message.offset);
-            }).finally(() => {
-                session.endSession();
-            });
-            await heartbeat();
-        }
+            }
+        }).finally(() => {
+            session.endSession();
+        });
+        return this.dateArrivedRegisterEventHandler.callbackEventHandle(timeEvents);
     }
 }
 

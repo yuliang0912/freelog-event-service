@@ -27,6 +27,6 @@ export class HashedWheelTask {
         if (this.state !== HashedWheelTimeoutStateEnum.Waiting) {
             return;
         }
-        Reflect.apply(this.callback, null, [this.taskId]);
+        return Reflect.apply(this.callback, null, [this.taskId]);
     }
 }

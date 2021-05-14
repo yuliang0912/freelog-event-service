@@ -6,6 +6,8 @@ import * as moment from 'moment';
 import DateArrivedEventRegisterProvider from '../../app/data-provider/date-arrived-event-register-provider';
 import {TimeoutTaskTimer} from '../../hashed-wheel-timer';
 import {KafkaClient} from '../../kafka/client';
+import {first, isEmpty} from 'lodash';
+import {ContractEventTriggerHandler} from '../contract-event-trigger-handler';
 
 @provide()
 @scope(ScopeEnum.Singleton)
@@ -16,6 +18,8 @@ export class DateArrivedRegisterEventHandler {
     @inject()
     timeoutTaskTimer: TimeoutTaskTimer;
     @inject()
+    contractEventTriggerHandler: ContractEventTriggerHandler;
+    @inject()
     dateArrivedEventRegisterProvider: DateArrivedEventRegisterProvider;
 
     /**
@@ -23,12 +27,11 @@ export class DateArrivedRegisterEventHandler {
      * @param session
      * @param contractId
      * @param eventInfo
-     * @param callback
      */
-    async messageHandle(session: ClientSession, contractId: string, eventInfo: IContractRegisterEventMessage, callback: (...args) => void): Promise<void> {
+    async messageHandle(session: ClientSession, contractId: string, eventInfo: IContractRegisterEventMessage): Promise<void> {
         let triggerDate: Date = eventInfo.eventTime;
         if (eventInfo.code === ContractAllowRegisterEventEnum.AbsolutelyTimeEvent) {
-            triggerDate = new Date(eventInfo.args.datetime);
+            triggerDate = new Date(eventInfo.args.dateTime);
         }
         if (eventInfo.code === ContractAllowRegisterEventEnum.RelativeTimeEvent) {
             triggerDate = moment(triggerDate).add(eventInfo.args.elapsed as number, eventInfo.args.TIMEUNIT as any).toDate();
@@ -39,26 +42,7 @@ export class DateArrivedRegisterEventHandler {
             triggerUnixTimestamp: Math.ceil(triggerDate.getTime() / 1000),
             callbackParams: eventInfo
         };
-        return this.dateArrivedEventRegisterProvider.create([model], {session}).then(([eventInfo]) => {
-            // 如果当天24点之前,则直接加入时间监控队列
-            if (triggerDate < moment({hour: 24}).toDate()) {
-                callback(() => this.triggerContractEvent(eventInfo));
-            }
-        });
-    }
-
-    /**
-     * 触发合同事件
-     * @param model
-     */
-    async triggerContractEvent(model) {
-        return this.timeoutTaskTimer.addTimerTask(model._id.toString(), model.triggerDate, () => {
-            this.kafkaClient.send({
-                topic: 'contract-fsm-event-trigger-topic', acks: -1, messages: [{
-                    key: model.subjectId.toString(), value: JSON.stringify(model.callbackParams)
-                }]
-            });
-        });
+        return this.dateArrivedEventRegisterProvider.create([model], {session}).then(events => first(events));
     }
 
     /**
@@ -71,5 +55,42 @@ export class DateArrivedRegisterEventHandler {
             subjectId: contractId,
             initiatorType: EventRegisterInitiatorTypeEnum.ContractService
         }, {session});
+    }
+
+    /**
+     * 回调事件
+     * @param events
+     */
+    async callbackEventHandle(events: any[]) {
+
+        if (!events || isEmpty(events)) {
+            return;
+        }
+        const currentTime = Date.now();
+        const upcomingTime = currentTime + 3600000;
+        const outdatedEvents = events.filter(x => x.triggerDate.getTime() <= currentTime);
+        const upcomingEvents = events.filter(x => x.triggerDate.getTime() > currentTime && x.triggerDate.getTime() < upcomingTime);
+        if (!isEmpty(outdatedEvents)) {
+            await this.contractEventTriggerHandler.triggerContractEvent(outdatedEvents).then(() => {
+                return this.dateArrivedEventRegisterProvider.updateMany({_id: outdatedEvents.map(x => x._id)}, {
+                    $inc: {triggerCount: 1}, status: 2
+                })
+            }).catch(error => {
+                return this.dateArrivedEventRegisterProvider.updateMany({_id: outdatedEvents.map(x => x._id)}, {status: 3})
+            });
+        }
+        if (!isEmpty(upcomingEvents)) {
+            for (const eventInfo of upcomingEvents) {
+                this.timeoutTaskTimer.addTimerTask(eventInfo._id.toString, eventInfo.triggerDate, (taskId: string) => {
+                    this.contractEventTriggerHandler.triggerContractEvent([eventInfo]).then(() => {
+                        return this.dateArrivedEventRegisterProvider.updateOne({_id: eventInfo._id}, {
+                            $inc: {triggerCount: 1}, status: 2
+                        })
+                    }).catch(error => {
+                        return this.dateArrivedEventRegisterProvider.updateOne({_id: eventInfo._id}, {status: 3})
+                    });
+                })
+            }
+        }
     }
 }

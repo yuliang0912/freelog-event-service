@@ -3,23 +3,19 @@ import { IContractRegisterEventMessage } from '../../interface';
 import DateArrivedEventRegisterProvider from '../../app/data-provider/date-arrived-event-register-provider';
 import { TimeoutTaskTimer } from '../../hashed-wheel-timer';
 import { KafkaClient } from '../../kafka/client';
+import { ContractEventTriggerHandler } from '../contract-event-trigger-handler';
 export declare class DateArrivedRegisterEventHandler {
     kafkaClient: KafkaClient;
     timeoutTaskTimer: TimeoutTaskTimer;
+    contractEventTriggerHandler: ContractEventTriggerHandler;
     dateArrivedEventRegisterProvider: DateArrivedEventRegisterProvider;
     /**
      * 时间相关的事件注册
      * @param session
      * @param contractId
      * @param eventInfo
-     * @param callback
      */
-    messageHandle(session: ClientSession, contractId: string, eventInfo: IContractRegisterEventMessage, callback: (...args: any[]) => void): Promise<void>;
-    /**
-     * 触发合同事件
-     * @param model
-     */
-    triggerContractEvent(model: any): Promise<import("../../hashed-wheel-timer/hashed-wheel-task").HashedWheelTask>;
+    messageHandle(session: ClientSession, contractId: string, eventInfo: IContractRegisterEventMessage): Promise<void>;
     /**
      * 先取消注册之前的事件,再注册新的事件
      * @param session
@@ -30,4 +26,9 @@ export declare class DateArrivedRegisterEventHandler {
         nModified: number;
         ok: number;
     }>;
+    /**
+     * 回调事件
+     * @param events
+     */
+    callbackEventHandle(events: any[]): Promise<void>;
 }

@@ -1,4 +1,4 @@
-import { EachBatchPayload } from 'kafkajs';
+import { EachMessagePayload } from 'kafkajs';
 import { IKafkaSubscribeMessageHandle } from '../../interface';
 import { CycleRegisterEventHandler } from './cycle-register-event-handler';
 import { MongoClient } from 'mongodb';
@@ -14,5 +14,5 @@ export declare class RegisterEventHandler implements IKafkaSubscribeMessageHandl
      * 消息处理
      * @param payload
      */
-    messageHandle(payload: EachBatchPayload): Promise<void>;
+    messageHandle(payload: EachMessagePayload): Promise<void>;
 }

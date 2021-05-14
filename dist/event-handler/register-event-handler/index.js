@@ -28,42 +28,36 @@ let RegisterEventHandler = class RegisterEventHandler {
      * @param payload
      */
     async messageHandle(payload) {
-        const { batch, resolveOffset, heartbeat } = payload;
-        for (const message of batch.messages) {
-            const eventTime = new Date(parseInt(message.timestamp, 10));
-            const contractId = message.key.toString();
-            const registerEvents = JSON.parse(message.value.toString());
-            const session = await this.mongoose.startSession();
-            const callbacks = [];
-            const callback = (func) => callbacks.push(func);
-            await session.withTransaction(() => {
-                const registerTasks = [];
-                registerTasks.push(this.cycleRegisterEventHandler.cancelRegister(session, contractId));
-                registerTasks.push(this.dateArrivedRegisterEventHandler.cancelRegister(session, contractId));
-                for (const eventInfo of registerEvents) {
-                    eventInfo.eventTime = eventTime;
-                    eventInfo.contractId = contractId;
-                    switch (eventInfo.code) {
-                        case enum_1.ContractAllowRegisterEventEnum.EndOfCycleEvent:
-                            registerTasks.push(this.cycleRegisterEventHandler.messageHandle(session, contractId, eventInfo));
-                            break;
-                        case enum_1.ContractAllowRegisterEventEnum.RelativeTimeEvent:
-                        case enum_1.ContractAllowRegisterEventEnum.AbsolutelyTimeEvent:
-                            registerTasks.push(this.dateArrivedRegisterEventHandler.messageHandle(session, contractId, eventInfo, callback));
-                            break;
-                        default:
-                            break;
-                    }
+        const { message } = payload;
+        const eventTime = new Date(parseInt(message.timestamp, 10));
+        const contractId = message.key.toString();
+        const registerEvents = JSON.parse(message.value.toString());
+        const timeEvents = [];
+        const session = await this.mongoose.startSession();
+        await session.withTransaction(async () => {
+            const registerTasks = [];
+            registerTasks.push(this.cycleRegisterEventHandler.cancelRegister(session, contractId));
+            registerTasks.push(this.dateArrivedRegisterEventHandler.cancelRegister(session, contractId));
+            await Promise.all(registerTasks);
+            for (const eventInfo of registerEvents) {
+                eventInfo.eventTime = eventTime;
+                eventInfo.contractId = contractId;
+                switch (eventInfo.code) {
+                    case enum_1.ContractAllowRegisterEventEnum.EndOfCycleEvent:
+                        await this.cycleRegisterEventHandler.messageHandle(session, contractId, eventInfo);
+                        break;
+                    case enum_1.ContractAllowRegisterEventEnum.RelativeTimeEvent:
+                    case enum_1.ContractAllowRegisterEventEnum.AbsolutelyTimeEvent:
+                        await this.dateArrivedRegisterEventHandler.messageHandle(session, contractId, eventInfo).then(x => timeEvents.push(x));
+                        break;
+                    default:
+                        break;
                 }
-                return Promise.all(registerTasks);
-            }).then(() => {
-                callbacks.forEach(callback => callback());
-                resolveOffset(message.offset);
-            }).finally(() => {
-                session.endSession();
-            });
-            await heartbeat();
-        }
+            }
+        }).finally(() => {
+            session.endSession();
+        });
+        return this.dateArrivedRegisterEventHandler.callbackEventHandle(timeEvents);
     }
 };
 __decorate([
@@ -89,4 +83,4 @@ RegisterEventHandler = __decorate([
     midway_1.scope(midway_1.ScopeEnum.Singleton)
 ], RegisterEventHandler);
 exports.RegisterEventHandler = RegisterEventHandler;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvZXZlbnQtaGFuZGxlci9yZWdpc3Rlci1ldmVudC1oYW5kbGVyL2luZGV4LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7OztBQUNBLG1DQUF1RTtBQUN2RSxxQ0FBMEQ7QUFHMUQsaUZBQXlFO0FBQ3pFLHFDQUFvQztBQUNwQywrRkFBc0Y7QUFJdEYsSUFBYSxvQkFBb0IsR0FBakMsTUFBYSxvQkFBb0I7SUFBakM7UUFFSSxvQkFBZSxHQUFHLG9EQUFvRCxDQUFDO1FBQ3ZFLHVCQUFrQixHQUFHLG1DQUFtQyxDQUFDO0lBd0Q3RCxDQUFDO0lBOUNHLE9BQU87UUFDSCxJQUFJLENBQUMsYUFBYSxHQUFHLElBQUksQ0FBQyxhQUFhLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFDO0lBQ3ZELENBQUM7SUFFRDs7O09BR0c7SUFDSCxLQUFLLENBQUMsYUFBYSxDQUFDLE9BQXlCO1FBQ3pDLE1BQU0sRUFBQyxLQUFLLEVBQUUsYUFBYSxFQUFFLFNBQVMsRUFBQyxHQUFHLE9BQU8sQ0FBQztRQUNsRCxLQUFLLE1BQU0sT0FBTyxJQUFJLEtBQUssQ0FBQyxRQUFRLEVBQUU7WUFDbEMsTUFBTSxTQUFTLEdBQUcsSUFBSSxJQUFJLENBQUMsUUFBUSxDQUFDLE9BQU8sQ0FBQyxTQUFTLEVBQUUsRUFBRSxDQUFDLENBQUMsQ0FBQztZQUM1RCxNQUFNLFVBQVUsR0FBRyxPQUFPLENBQUMsR0FBRyxDQUFDLFFBQVEsRUFBRSxDQUFDO1lBQzFDLE1BQU0sY0FBYyxHQUFHLElBQUksQ0FBQyxLQUFLLENBQUMsT0FBTyxDQUFDLEtBQUssQ0FBQyxRQUFRLEVBQUUsQ0FBb0MsQ0FBQztZQUMvRixNQUFNLE9BQU8sR0FBRyxNQUFNLElBQUksQ0FBQyxRQUFRLENBQUMsWUFBWSxFQUFFLENBQUM7WUFDbkQsTUFBTSxTQUFTLEdBQUcsRUFBRSxDQUFDO1lBQ3JCLE1BQU0sUUFBUSxHQUFHLENBQUMsSUFBSSxFQUFFLEVBQUUsQ0FBQyxTQUFTLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFDO1lBQ2hELE1BQU0sT0FBTyxDQUFDLGVBQWUsQ0FBQyxHQUFHLEVBQUU7Z0JBQy9CLE1BQU0sYUFBYSxHQUFHLEVBQUUsQ0FBQztnQkFDekIsYUFBYSxDQUFDLElBQUksQ0FBQyxJQUFJLENBQUMseUJBQXlCLENBQUMsY0FBYyxDQUFDLE9BQU8sRUFBRSxVQUFVLENBQUMsQ0FBQyxDQUFDO2dCQUN2RixhQUFhLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQywrQkFBK0IsQ0FBQyxjQUFjLENBQUMsT0FBTyxFQUFFLFVBQVUsQ0FBQyxDQUFDLENBQUM7Z0JBQzdGLEtBQUssTUFBTSxTQUFTLElBQUksY0FBYyxFQUFFO29CQUNwQyxTQUFTLENBQUMsU0FBUyxHQUFHLFNBQVMsQ0FBQztvQkFDaEMsU0FBUyxDQUFDLFVBQVUsR0FBRyxVQUFVLENBQUM7b0JBQ2xDLFFBQVEsU0FBUyxDQUFDLElBQUksRUFBRTt3QkFDcEIsS0FBSyxxQ0FBOEIsQ0FBQyxlQUFlOzRCQUMvQyxhQUFhLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQyx5QkFBeUIsQ0FBQyxhQUFhLENBQUMsT0FBTyxFQUFFLFVBQVUsRUFBRSxTQUFTLENBQUMsQ0FBQyxDQUFDOzRCQUNqRyxNQUFNO3dCQUNWLEtBQUsscUNBQThCLENBQUMsaUJBQWlCLENBQUM7d0JBQ3RELEtBQUsscUNBQThCLENBQUMsbUJBQW1COzRCQUNuRCxhQUFhLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQywrQkFBK0IsQ0FBQyxhQUFhLENBQUMsT0FBTyxFQUFFLFVBQVUsRUFBRSxTQUFTLEVBQUUsUUFBUSxDQUFDLENBQUMsQ0FBQzs0QkFDakgsTUFBTTt3QkFDVjs0QkFDSSxNQUFNO3FCQUNiO2lCQUNKO2dCQUNELE9BQU8sT0FBTyxDQUFDLEdBQUcsQ0FBQyxhQUFhLENBQVEsQ0FBQztZQUM3QyxDQUFDLENBQUMsQ0FBQyxJQUFJLENBQUMsR0FBRyxFQUFFO2dCQUNULFNBQVMsQ0FBQyxPQUFPLENBQUMsUUFBUSxDQUFDLEVBQUUsQ0FBQyxRQUFRLEVBQUUsQ0FBQyxDQUFDO2dCQUMxQyxhQUFhLENBQUMsT0FBTyxDQUFDLE1BQU0sQ0FBQyxDQUFDO1lBQ2xDLENBQUMsQ0FBQyxDQUFDLE9BQU8sQ0FBQyxHQUFHLEVBQUU7Z0JBQ1osT0FBTyxDQUFDLFVBQVUsRUFBRSxDQUFDO1lBQ3pCLENBQUMsQ0FBQyxDQUFDO1lBQ0gsTUFBTSxTQUFTLEVBQUUsQ0FBQztTQUNyQjtJQUNMLENBQUM7Q0FDSixDQUFBO0FBckRHO0lBREMsZUFBTSxFQUFFOzhCQUNDLHFCQUFXO3NEQUFDO0FBRXRCO0lBREMsZUFBTSxFQUFFOzhCQUNrQix3REFBeUI7dUVBQUM7QUFFckQ7SUFEQyxlQUFNLEVBQUU7OEJBQ3dCLHFFQUErQjs2RUFBQztBQUdqRTtJQURDLGFBQUksRUFBRTs7OzttREFHTjtBQWZRLG9CQUFvQjtJQUZoQyxnQkFBTyxFQUFFO0lBQ1QsY0FBSyxDQUFDLGtCQUFTLENBQUMsU0FBUyxDQUFDO0dBQ2Qsb0JBQW9CLENBMkRoQztBQTNEWSxvREFBb0IifQ==
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi9zcmMvZXZlbnQtaGFuZGxlci9yZWdpc3Rlci1ldmVudC1oYW5kbGVyL2luZGV4LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7OztBQUNBLG1DQUF1RTtBQUN2RSxxQ0FBMEQ7QUFHMUQsaUZBQXlFO0FBQ3pFLHFDQUFvQztBQUNwQywrRkFBc0Y7QUFJdEYsSUFBYSxvQkFBb0IsR0FBakMsTUFBYSxvQkFBb0I7SUFBakM7UUFFSSxvQkFBZSxHQUFHLG9EQUFvRCxDQUFDO1FBQ3ZFLHVCQUFrQixHQUFHLG1DQUFtQyxDQUFDO0lBa0Q3RCxDQUFDO0lBeENHLE9BQU87UUFDSCxJQUFJLENBQUMsYUFBYSxHQUFHLElBQUksQ0FBQyxhQUFhLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFDO0lBQ3ZELENBQUM7SUFFRDs7O09BR0c7SUFDSCxLQUFLLENBQUMsYUFBYSxDQUFDLE9BQTJCO1FBQzNDLE1BQU0sRUFBQyxPQUFPLEVBQUMsR0FBRyxPQUFPLENBQUM7UUFDMUIsTUFBTSxTQUFTLEdBQUcsSUFBSSxJQUFJLENBQUMsUUFBUSxDQUFDLE9BQU8sQ0FBQyxTQUFTLEVBQUUsRUFBRSxDQUFDLENBQUMsQ0FBQztRQUM1RCxNQUFNLFVBQVUsR0FBRyxPQUFPLENBQUMsR0FBRyxDQUFDLFFBQVEsRUFBRSxDQUFDO1FBQzFDLE1BQU0sY0FBYyxHQUFHLElBQUksQ0FBQyxLQUFLLENBQUMsT0FBTyxDQUFDLEtBQUssQ0FBQyxRQUFRLEVBQUUsQ0FBb0MsQ0FBQztRQUMvRixNQUFNLFVBQVUsR0FBRyxFQUFFLENBQUM7UUFDdEIsTUFBTSxPQUFPLEdBQUcsTUFBTSxJQUFJLENBQUMsUUFBUSxDQUFDLFlBQVksRUFBRSxDQUFDO1FBQ25ELE1BQU0sT0FBTyxDQUFDLGVBQWUsQ0FBQyxLQUFLLElBQUksRUFBRTtZQUNyQyxNQUFNLGFBQWEsR0FBRyxFQUFFLENBQUM7WUFDekIsYUFBYSxDQUFDLElBQUksQ0FBQyxJQUFJLENBQUMseUJBQXlCLENBQUMsY0FBYyxDQUFDLE9BQU8sRUFBRSxVQUFVLENBQUMsQ0FBQyxDQUFDO1lBQ3ZGLGFBQWEsQ0FBQyxJQUFJLENBQUMsSUFBSSxDQUFDLCtCQUErQixDQUFDLGNBQWMsQ0FBQyxPQUFPLEVBQUUsVUFBVSxDQUFDLENBQUMsQ0FBQztZQUM3RixNQUFNLE9BQU8sQ0FBQyxHQUFHLENBQUMsYUFBYSxDQUFDLENBQUM7WUFDakMsS0FBSyxNQUFNLFNBQVMsSUFBSSxjQUFjLEVBQUU7Z0JBQ3BDLFNBQVMsQ0FBQyxTQUFTLEdBQUcsU0FBUyxDQUFDO2dCQUNoQyxTQUFTLENBQUMsVUFBVSxHQUFHLFVBQVUsQ0FBQztnQkFDbEMsUUFBUSxTQUFTLENBQUMsSUFBSSxFQUFFO29CQUNwQixLQUFLLHFDQUE4QixDQUFDLGVBQWU7d0JBQy9DLE1BQU0sSUFBSSxDQUFDLHlCQUF5QixDQUFDLGFBQWEsQ0FBQyxPQUFPLEVBQUUsVUFBVSxFQUFFLFNBQVMsQ0FBQyxDQUFDO3dCQUNuRixNQUFNO29CQUNWLEtBQUsscUNBQThCLENBQUMsaUJBQWlCLENBQUM7b0JBQ3RELEtBQUsscUNBQThCLENBQUMsbUJBQW1CO3dCQUNuRCxNQUFNLElBQUksQ0FBQywrQkFBK0IsQ0FBQyxhQUFhLENBQUMsT0FBTyxFQUFFLFVBQVUsRUFBRSxTQUFTLENBQUMsQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFDLEVBQUUsQ0FBQyxVQUFVLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7d0JBQ3ZILE1BQU07b0JBQ1Y7d0JBQ0ksTUFBTTtpQkFDYjthQUNKO1FBQ0wsQ0FBQyxDQUFDLENBQUMsT0FBTyxDQUFDLEdBQUcsRUFBRTtZQUNaLE9BQU8sQ0FBQyxVQUFVLEVBQUUsQ0FBQztRQUN6QixDQUFDLENBQUMsQ0FBQztRQUNILE9BQU8sSUFBSSxDQUFDLCtCQUErQixDQUFDLG1CQUFtQixDQUFDLFVBQVUsQ0FBQyxDQUFDO0lBQ2hGLENBQUM7Q0FDSixDQUFBO0FBL0NHO0lBREMsZUFBTSxFQUFFOzhCQUNDLHFCQUFXO3NEQUFDO0FBRXRCO0lBREMsZUFBTSxFQUFFOzhCQUNrQix3REFBeUI7dUVBQUM7QUFFckQ7SUFEQyxlQUFNLEVBQUU7OEJBQ3dCLHFFQUErQjs2RUFBQztBQUdqRTtJQURDLGFBQUksRUFBRTs7OzttREFHTjtBQWZRLG9CQUFvQjtJQUZoQyxnQkFBTyxFQUFFO0lBQ1QsY0FBSyxDQUFDLGtCQUFTLENBQUMsU0FBUyxDQUFDO0dBQ2Qsb0JBQW9CLENBcURoQztBQXJEWSxvREFBb0IifQ==

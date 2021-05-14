@@ -10,18 +10,16 @@ export class ContractEventTriggerHandler {
 
     /**
      * 触发合同事件
-     * @param eventInfo
+     * @param eventInfos
      */
-    async triggerContractEvent(eventInfo) {
-        eventInfo.callbackParams.eventTime = new Date();
+    async triggerContractEvent(eventInfos: any[]) {
         return this.kafkaClient.send({
-            topic: 'contract-fsm-event-trigger-topic', acks: -1, messages: [{
-                key: eventInfo.subjectId.toString(), value: JSON.stringify(eventInfo.callbackParams)
-            }]
-        }).then(() => {
-            eventInfo.eventTriggerSuccessful();
-        }).catch(() => {
-            eventInfo.eventTriggerFailed();
+            topic: 'contract-fsm-event-trigger-topic', acks: -1, messages: eventInfos.map(eventInfo => {
+                eventInfo.callbackParams.eventTime = new Date();
+                return {
+                    key: eventInfo.subjectId.toString(), value: JSON.stringify(eventInfo.callbackParams)
+                }
+            })
         });
     }
 }

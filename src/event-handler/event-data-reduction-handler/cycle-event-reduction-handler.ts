@@ -31,7 +31,11 @@ export class CycleEventReductionHandler {
         const triggerEvents = await this.cycleEventRegisterProvider.find(condition, null, {skip, limit});
 
         for (const eventInfo of triggerEvents) {
-            await this.contractEventTriggerHandler.triggerContractEvent(eventInfo).then();
+            await this.contractEventTriggerHandler.triggerContractEvent([eventInfo]).then(() => {
+                eventInfo.eventTriggerSuccessful();
+            }).catch(error => {
+                eventInfo.eventTriggerFailed();
+            });
         }
         if (triggerEvents.length === limit) {
             await this.cycleEventReductionHandle(cycleNumber, skip + limit, limit);

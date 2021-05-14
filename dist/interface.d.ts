@@ -1,8 +1,8 @@
-import { EachBatchPayload } from 'kafkajs';
+import { EachMessagePayload } from 'kafkajs';
 export interface IKafkaSubscribeMessageHandle {
     subscribeTopicName: string;
     consumerGroupId: string;
-    messageHandle(payload: EachBatchPayload): Promise<void>;
+    messageHandle(payload: EachMessagePayload): Promise<void>;
 }
 export interface IContractRegisterEventMessage {
     contractId: string;

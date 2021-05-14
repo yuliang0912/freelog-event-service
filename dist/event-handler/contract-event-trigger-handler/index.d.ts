@@ -3,7 +3,7 @@ export declare class ContractEventTriggerHandler {
     kafkaClient: KafkaClient;
     /**
      * 触发合同事件
-     * @param eventInfo
+     * @param eventInfos
      */
-    triggerContractEvent(eventInfo: any): Promise<void>;
+    triggerContractEvent(eventInfos: any[]): Promise<import("kafkajs").RecordMetadata[]>;
 }

@@ -1,4 +1,4 @@
-import { Consumer, EachBatchPayload, Kafka, Producer, ProducerBatch, ProducerRecord, RecordMetadata } from 'kafkajs';
+import { Consumer, EachMessagePayload, Kafka, Producer, ProducerBatch, ProducerRecord, RecordMetadata } from 'kafkajs';
 import { IKafkaSubscribeMessageHandle } from '../interface';
 /**
  * WIKI:https://kafka.js.org/docs/getting-started
@@ -9,7 +9,7 @@ export declare class KafkaClient {
     producer: Producer;
     consumers: Consumer[];
     producerIsReady: boolean;
-    consumerTopicAsyncHandleFunc: Map<string, (payload: EachBatchPayload) => Promise<void>>;
+    consumerTopicAsyncHandleFunc: Map<string, (payload: EachMessagePayload) => Promise<void>>;
     initial(): Promise<void>;
     /**
      * 订阅主题消息
