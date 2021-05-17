@@ -34,7 +34,7 @@ export class DateArrivedRegisterEventHandler {
             triggerDate = new Date(eventInfo.args.dateTime);
         }
         if (eventInfo.code === ContractAllowRegisterEventEnum.RelativeTimeEvent) {
-            triggerDate = moment(triggerDate).add(eventInfo.args.elapsed as number, eventInfo.args.TIMEUNIT as any).toDate();
+            triggerDate = moment(triggerDate).add(eventInfo.args.elapsed as number, eventInfo.args.timeUnit as any).toDate();
         }
         const model = {
             subjectId: contractId, triggerDate, triggerLimit: 1,
